@@ -49,13 +49,13 @@ class UNet(nn.Module):
 
 
     def use_checkpointing(self):
-        self.inc = checkpoint(self.inc)
         self.enc1 = checkpoint(self.enc1)
         self.enc2 = checkpoint(self.enc2)
         self.enc3 = checkpoint(self.enc3)
         self.enc4 = checkpoint(self.enc4)
+        self.bottleneck = checkpoint(self.bottleneck)
         self.encoder1 = checkpoint(self.encoder1)
         self.encoder2 = checkpoint(self.encoder2)
         self.encoder3 = checkpoint(self.encoder3)
         self.encoder4 = checkpoint(self.encoder4)
-        self.outc = checkpoint(self.outc)
+        self.out = checkpoint(self.out)
