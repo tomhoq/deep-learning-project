@@ -30,7 +30,7 @@ train_df, valid_df = get_dataframes()
 train_dataset = AirbusDataset(train_df, transform=train_transform, mode='train')
 val_dataset = AirbusDataset(valid_df, transform=val_transform, mode='validation')
 
-print('Train samples : %d | Validation samples : %d' % (len(train_dataset), len(val_dataset)))
+print('[*] Train samples : %d | Validation samples : %d' % (len(train_dataset), len(val_dataset)))
 
 # Get loaders
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE_TRAIN, shuffle=True, num_workers=0, pin_memory=torch.cuda.is_available())

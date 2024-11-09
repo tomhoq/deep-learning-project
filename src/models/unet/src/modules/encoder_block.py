@@ -12,8 +12,8 @@ class EncoderBlock(nn.Module):
         """
         super().__init__()
 
-        self.conv = DoubleConv(in_channels, out_channels),
-        self.downsample = nn.MaxPool2d(2),
+        self.conv = DoubleConv(in_channels, out_channels)
+        self.downsample = nn.MaxPool2d(2)
 
 
     def forward(self, x):
