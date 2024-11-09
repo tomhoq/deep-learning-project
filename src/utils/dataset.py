@@ -1,11 +1,13 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
 import torch
 import os
 import numpy as np
 from skimage.io import imread
 from torch.utils.data import Dataset
 from torchvision import transforms
-from helpers import masks_as_image
-from helpers import PATHS
+from .helpers import masks_as_image
+from .helpers import PATHS
 
 
 class AirbusDataset(Dataset):
@@ -45,3 +47,34 @@ class AirbusDataset(Dataset):
             return self.img_transform(img), torch.from_numpy(np.moveaxis(mask, -1, 0)).float()  
         else:
             return self.img_transform(img), str(img_file_name)
+
+
+
+
+def get_dataframes():
+    """
+    Make the dataframes for the dataset. Check `eda.ipynb` for a more detailed explanation.
+    Basically we're returning a df that has been cleaned of corrupted images and images without ships.
+    """
+
+    # Get all
+    masks = pd.read_csv(os.path.join(PATHS['root'], 'train_ship_segmentations_v2.csv'))
+    # Remove corrupted file
+    masks = masks[~masks['ImageId'].isin(['6384c3e78.jpg'])]
+    # Remove images without ships
+    masks = masks.dropna() 
+
+    # Split between train and validation sets
+    # We use stratify to balance the number of ships per image between the two df
+    unique_img_ids = masks.groupby('ImageId').size().reset_index(name='counts')
+    train_ids, val_ids = train_test_split(unique_img_ids, test_size=0.05, stratify=unique_img_ids['counts'], random_state=42)
+
+    # Inner join masks with the ids
+    train_df = pd.merge(masks, train_ids)
+    valid_df = pd.merge(masks, val_ids)
+
+    # Update the counts, set to 0 all the cases where the mask is not a valid one (i.e. not a string)
+    train_df['counts'] = train_df.apply(lambda c_row: c_row['counts'] if isinstance(c_row['EncodedPixels'], str) else 0, 1)
+    valid_df['counts'] = valid_df.apply(lambda c_row: c_row['counts'] if isinstance(c_row['EncodedPixels'], str) else 0, 1)
+
+    return train_df, valid_df

@@ -3,6 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import cv2
 
+
 DATA_DIR = os.getenv('BLACKHOLE')
 PATHS = {
     'root': DATA_DIR,
@@ -49,7 +50,6 @@ def masks_as_image(rle_masks):
 
 
 
-
 #################### PLOTTING OR VIEWING IMAGES #################### 
 
 def mask_overlay(image, mask, color=(0, 1, 0)):
@@ -70,14 +70,20 @@ def imshow_tensor_with_mask(img, mask, title=None):
     Imshow for Tensor.
     """
 
+    # Rearrange the dimensions from [channels, height, width] to [height, width, channels], as matplotlib expects this format.
     img = img.numpy().transpose((1, 2, 0))
+
+    # Undo the normalization to bring pixel values back to a visible range
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
     img = std * img + mean
+    # Ensures pixel values are in the range [0, 1]
     img = np.clip(img, 0, 1)
+
+    # Same as above: converts to [height, width, channels] and ensures range of [0, 1]
     mask = mask.numpy().transpose((1, 2, 0))
     mask = np.clip(mask, 0, 1)
-    fig = plt.figure(figsize = (6,6))
+
     plt.imshow(mask_overlay(img, mask))
     if title is not None:
         plt.title(title)

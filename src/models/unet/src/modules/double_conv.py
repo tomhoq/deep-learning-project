@@ -1,6 +1,6 @@
 from torch import nn
 
-class DoubleConvolution(nn.Module):
+class DoubleConv(nn.Module):
     """
     Double convolution block for the U-Net architecture.
     Compared to the original architecture BatchNorm and "same" padding have been added.

@@ -1,10 +1,10 @@
 from torch import nn
 from torch.utils import checkpoint
-from modules import DoubleConv, DecoderBlock, EncoderBlock, OutConv
+from .modules import DoubleConv, DecoderBlock, EncoderBlock
 
 
 class UNet(nn.Module):
-    def __init__(self, n_input_channels, n_output_classes):
+    def __init__(self, input_channels, output_classes):
         """
         Defines the U-Net architecture.
 
@@ -14,10 +14,10 @@ class UNet(nn.Module):
 
         super().__init__()
 
-        self.n_input_channels = n_input_channels
-        self.n_output_classes = n_output_classes
+        self.n_input_channels = input_channels
+        self.n_output_classes = output_classes
 
-        self.enc1 = EncoderBlock(n_input_channels, 64)
+        self.enc1 = EncoderBlock(input_channels, 64)
         self.enc1 = EncoderBlock(64, 128)
         self.enc2 = EncoderBlock(128, 256)
         self.enc3 = EncoderBlock(256, 512)
@@ -29,7 +29,7 @@ class UNet(nn.Module):
         self.encoder3 = DecoderBlock(256, 128)
         self.encoder4 = DecoderBlock(128, 64)
 
-        self.out = nn.Conv2d(64, n_output_classes, kernel_size=1, padding="same")
+        self.out = nn.Conv2d(64, output_classes, kernel_size=1, padding="same")
 
 
     def forward(self, x):

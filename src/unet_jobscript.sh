@@ -40,27 +40,24 @@
 
 
 
-
+MODEL=unet
 REPO=/zhome/82/4/212615/deep-learning-project
-UNET=${REPO}/U-Net
-
 
 # Create job_out if it is not present
 if [[ ! -d ${REPO}/job_out ]]; then
-	mkdir ${UNET}/job_out
+	mkdir ${REPO}/job_out
 fi
 
 
 date=$(date +%Y%m%d_%H%M)
-mkdir ${UNET}/runs/train/${date}
-
+mkdir ${REPO}/${MODEL}/runs/train/${date}
 
 # Activate venv
 module load python3/3.10.14
 source ${REPO}/.venv/bin/activate
 
 # run training
-python3 train.py --config config.yaml
+python3 ${REPO}/src/train.py ${MODEL}
 
 
 
