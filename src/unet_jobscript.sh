@@ -33,8 +33,8 @@
 
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o gpu_%J.out
-#BSUB -e gpu_%J.err
+#BSUB -o job_out/gpu_%J.out
+#BSUB -e job_out/gpu_%J.err
 
 # -- end of LSF options --
 
@@ -50,14 +50,15 @@ fi
 
 
 date=$(date +%Y%m%d_%H%M)
-mkdir ${REPO}/${MODEL}/runs/train/${date}
+OUT=${REPO}/job_out/${MODEL}/${date}
+mkdir out
 
 # Activate venv
 module load python3/3.10.14
 source ${REPO}/.venv/bin/activate
 
 # run training
-python3 ${REPO}/src/train.py ${MODEL}
+python3 ${REPO}/src/train.py ${MODEL} ${OUT}
 
 
 

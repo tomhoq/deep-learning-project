@@ -9,8 +9,8 @@ from torch.nn import BCEWithLogitsLoss
 from sys import argv
 
 # Expects the name of the model (unet or yolo) as argument
-if len(argv) != 2:  # Expect exactly one argument (plus the script name)
-    raise ValueError("Expected exactly one argument. Usage: python test.py <model>.\n<model> = 'unet' | 'yolo'")
+if len(argv) != 3:  # Expect exactly one argument (plus the script name)
+    raise ValueError("Expected exactly two arguments. Usage: python test.py <model> <out_path>.\n<model> = 'unet' | 'yolo'")
 
 # Train run number
 RUN_ID = 1
@@ -30,7 +30,8 @@ train_df, valid_df = get_dataframes()
 train_dataset = AirbusDataset(train_df, transform=train_transform, mode='train')
 val_dataset = AirbusDataset(valid_df, transform=val_transform, mode='validation')
 
-print('[*] Train samples : %d | Validation samples : %d' % (len(train_dataset), len(val_dataset)))
+print('\n[*] Train samples : %d | Validation samples : %d' % (len(train_dataset), len(val_dataset)))
+print(f"[*] Training {'U-Net' if argv[1] == 'unet' else 'YOLO'} model")
 
 # Get loaders
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE_TRAIN, shuffle=True, num_workers=0, pin_memory=torch.cuda.is_available())
@@ -53,5 +54,6 @@ train(
     n_epochs = N_EPOCHS,
     train_batch_size = BATCH_SIZE_TRAIN,
     valid_batch_size = BATCH_SIZE_VALID,
-    fold = RUN_ID
+    fold = RUN_ID,
+    out_path = argv[2],
 )

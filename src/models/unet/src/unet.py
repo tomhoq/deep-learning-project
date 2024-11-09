@@ -18,9 +18,9 @@ class UNet(nn.Module):
         self.n_output_classes = output_classes
 
         self.enc1 = EncoderBlock(input_channels, 64)
-        self.enc1 = EncoderBlock(64, 128)
-        self.enc2 = EncoderBlock(128, 256)
-        self.enc3 = EncoderBlock(256, 512)
+        self.enc2 = EncoderBlock(64, 128)
+        self.enc3 = EncoderBlock(128, 256)
+        self.enc4 = EncoderBlock(256, 512)
 
         self.bottleneck = DoubleConv(512, 1024)
 
@@ -41,9 +41,9 @@ class UNet(nn.Module):
         b = self.bottleneck(x)
 
         x = self.encoder1(b, s4)
-        x = self.encoder2(b, s3)
-        x = self.encoder3(b, s2)
-        x = self.encoder4(b, s1)
+        x = self.encoder2(x, s3)
+        x = self.encoder3(x, s2)
+        x = self.encoder4(x, s1)
 
         return self.out(x, )
 

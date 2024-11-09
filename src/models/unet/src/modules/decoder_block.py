@@ -24,7 +24,7 @@ class DecoderBlock(nn.Module):
         :param skip_features: Features from the encoder part of the U-Net
         """
 
-        upsampled_x = self.up(x)
+        upsampled_x = self.upscale(x)
 
         # Concatenate by column (in our version we do not need cropping since we use "same" padding)
         x = cat([upsampled_x, skip_features], dim=1)
