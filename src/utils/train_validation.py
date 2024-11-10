@@ -7,6 +7,8 @@ from datetime import datetime
 import json
 import numpy as np
 from .metrics import metrics
+from os import path
+from sys import stdout
 
 
 def write_event(log, step: int, **data):
@@ -29,7 +31,7 @@ def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optim
     """
     
     # Restore model or start from scratch
-    model_path = Path(out_path + 'model_{fold}.pt'.format(fold=fold))
+    model_path = Path(path.join(out_path, 'model_{fold}.pt'.format(fold=fold)))
     if model_path.exists():
         state = torch.load(str(model_path))
         epoch = state['epoch']
@@ -49,7 +51,7 @@ def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optim
 
     # Init logging
     report_each = 50
-    log = open(out_path + 'train_{fold}.log'.format(fold=fold), 'at', encoding='utf8')
+    log = open(path.join(out_path, 'train_{fold}.log'.format(fold=fold)), 'at', encoding='utf8')
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[!] TRAINING USING {'GPU' if torch.cuda.is_available() else 'CPU'}\n\n")
@@ -61,7 +63,7 @@ def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optim
 
         # For logging
         random.seed()
-        tq = tqdm(total=len(train_loader) *  train_batch_size)
+        tq = tqdm(total=len(train_loader) *  train_batch_size, file=stdout)
         tq.set_description('Epoch {}, lr {}'.format(epoch, lr))
         losses = []
 
@@ -71,7 +73,6 @@ def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optim
             for i, (inputs, targets) in enumerate(train_loader):
 
                 inputs, targets = inputs.to(device), targets.to(device)
-
 
                 ### FORWARD AND BACK PROP ###
                 outputs = model(inputs)
@@ -110,6 +111,8 @@ def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optim
             save(epoch)
             print('done.')
             return
+
+        print("\n[+] Finished training")
         
 
 def validation(model: nn.Module, loss_function, valid_loader, metrics, device):

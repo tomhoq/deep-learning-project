@@ -1,5 +1,4 @@
-from utils.data_augmentation import CenterCrop, DualCompose, HorizontalFlip, RandomCrop, VerticalFlip
-from utils.dataset import AirbusDataset, get_dataframes
+from utils.dataset import AirbusDataset, get_dataframes, get_transforms
 from utils.helpers import PATHS
 from utils.train_validation import train
 from models.unet.src.unet import UNet
@@ -8,8 +7,8 @@ import torch
 from torch.nn import BCEWithLogitsLoss
 from sys import argv
 
-# Expects the name of the model (unet or yolo) as argument
-if len(argv) != 3:  # Expect exactly one argument (plus the script name)
+# Check arguments
+if len(argv) != 3:
     raise ValueError("Expected exactly two arguments. Usage: python test.py <model> <out_path>.\n<model> = 'unet' | 'yolo'")
 
 # Train run number
@@ -22,8 +21,7 @@ LR = 1e-4
 N_EPOCHS = 3
 
 # Transforms
-train_transform = DualCompose([HorizontalFlip(), VerticalFlip(), RandomCrop((256,256,3))])
-val_transform = DualCompose([CenterCrop((512,512,3))])
+train_transform, val_transform = get_transforms()
 
 # Initialize dataset
 train_df, valid_df = get_dataframes()

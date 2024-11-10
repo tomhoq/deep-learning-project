@@ -33,31 +33,26 @@
 
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o job_out/unet/gpu_%J.out
-#BSUB -e job_out/unet/gpu_%J.err
+#BSUB -o job_out/unet/gpu_evaluation_%J.out
+#BSUB -e job_out/unet/gpu_evaluation_%J.err
 
 # -- end of LSF options --
 
 
-
 MODEL=unet
 REPO=/zhome/82/4/212615/deep-learning-project
+OUT=20241109_2015
 
-# Create job_out if it is not present
-if [[ ! -d ${REPO}/job_out ]]; then
-	mkdir ${REPO}/job_out
+if [[ ! -d ${REPO}/job_out/${MODEL}/${OUT}/evaluation ]]; then
+    mkdir ${REPO}/job_out/${MODEL}/${OUT}/evaluation
 fi
-
-date=$(date +%Y%m%d_%H%M)
-OUT=${REPO}/job_out/${MODEL}/${date}
-mkdir -p ${OUT}
 
 # Activate venv
 module load python3/3.10.14
 source ${REPO}/.venv/bin/activate
 
 # run training
-python3 ${REPO}/src/train.py ${MODEL} ${OUT}
+python3 ${REPO}/src/evaluate.py ${MODEL} ${REPO}/job_out/${MODEL}/${OUT}
 
 
 

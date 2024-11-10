@@ -8,6 +8,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 from .helpers import masks_as_image
 from .helpers import PATHS
+from utils.data_augmentation import CenterCrop, DualCompose, HorizontalFlip, RandomCrop, VerticalFlip
 
 
 class AirbusDataset(Dataset):
@@ -42,7 +43,7 @@ class AirbusDataset(Dataset):
         
         if self.transform is not None: 
             img, mask = self.transform(img, mask)
-            
+
         if (self.mode == 'train') | (self.mode == 'validation'):
             return self.img_transform(img), torch.from_numpy(np.moveaxis(mask, -1, 0)).float()  
         else:
@@ -78,3 +79,11 @@ def get_dataframes():
     valid_df['counts'] = valid_df.apply(lambda c_row: c_row['counts'] if isinstance(c_row['EncodedPixels'], str) else 0, 1)
 
     return train_df, valid_df
+
+
+
+def get_transforms():
+    train_transform = DualCompose([HorizontalFlip(), VerticalFlip(), RandomCrop((256,256,3))])
+    val_transform = DualCompose([CenterCrop((512,512,3))])
+
+    return train_transform, val_transform
