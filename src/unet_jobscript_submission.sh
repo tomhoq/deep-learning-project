@@ -33,8 +33,8 @@
 
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o job_out/unet/gpu_evaluation_%J.out
-#BSUB -e job_out/unet/gpu_evaluation_%J.err
+#BSUB -o job_out/unet/gpu_submission%J.out
+#BSUB -e job_out/unet/gpu_submission%J.err
 
 # -- end of LSF options --
 
@@ -52,7 +52,7 @@ module load python3/3.10.14
 source ${REPO}/.venv/bin/activate
 
 # run training
-python3 ${REPO}/src/evaluate.py ${MODEL} ${REPO}/job_out/${MODEL}/${OUT}
+python3 ${REPO}/src/make_submission.py ${MODEL} ${REPO}/job_out/${MODEL}/${OUT}
 
 
 

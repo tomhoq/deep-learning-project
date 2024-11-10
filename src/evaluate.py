@@ -3,10 +3,9 @@ from sys import argv
 from os import path
 import matplotlib.pyplot as plt
 import torch
-import torchvision
 from models.unet.src.unet import UNet
 from utils.dataset import AirbusDataset, get_dataframes, get_transforms
-from utils.helpers import compare_model_outputs_with_ground_truths, get_image_from_tensor_and_masks, mask_overlay
+from utils.helpers import compare_model_outputs_with_ground_truths
 
 
 ########## Arguments ##########
@@ -50,7 +49,7 @@ plt.savefig(path.join(out_path, 'evaluation', 'loss.png'))
 model_path = path.join(out_path, 'model_{fold}.pt'.format(fold=RUN_ID))
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"[!] RUNNING ON {'GPU' if torch.cuda.is_available() else 'CPU'}\n\n")
+print(f"[!] RUNNING ON {'GPU' if torch.cuda.is_available() else 'CPU'}\n")
 
 # Load model
 state = torch.load(str(model_path), map_location=device, weights_only=False)
@@ -73,26 +72,6 @@ out = model(images)
 out = ((out > 0).float()) * 255
 images = images.data.cpu()
 out = out.data.cpu()
-
-
-
-
-# images = torchvision.utils.make_grid(images, nrow=1)
-# out = torchvision.utils.make_grid(out, nrow=1)
-# gt = torchvision.utils.make_grid(gt, nrow=1)
-
-# img, [mask_gt, mask_out] = get_image_from_tensor_and_masks(images[0], [gt[0], out[0]])
-
-# print(img.shape)
-# print(mask_gt.shape)
-
-# plt.imsave(path.join(out_path, 'evaluation', 'mask_gt.png'), mask_overlay(img, mask_gt))
-# plt.imsave(path.join(out_path, 'evaluation', 'mask_out.png'), mask_overlay(img, mask_out))
-
-
-
-
-
 
 compare_model_outputs_with_ground_truths(images, gt, out)
 plt.savefig(path.join(out_path, 'evaluation', 'model_vs_ground_truth.png'))

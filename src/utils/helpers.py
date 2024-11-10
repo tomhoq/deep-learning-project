@@ -2,7 +2,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import cv2
-import torchvision
+from skimage.measure import label
 
 
 DATA_DIR = os.getenv('BLACKHOLE')
@@ -31,6 +31,23 @@ def rle_decode(mask_rle, shape=(768, 768)):
     for lo, hi in zip(starts, ends):
         img[lo:hi] = 1
     return img.reshape(shape).T  # Needed to align to RLE direction
+
+
+def rle_encode(img):
+    '''
+    img: numpy array, 1 - mask, 0 - background
+    Returns run length as string formated
+    '''
+    pixels = img.flatten()
+    pixels = np.concatenate([[0], pixels, [0]])
+    runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
+    runs[1::2] -= runs[::2]
+    return ' '.join(str(x) for x in runs)
+
+
+def multi_rle_encode(img):
+    labels = label(img)
+    return [rle_encode(labels==k) for k in np.unique(labels[labels>0])]
 
 
 def masks_as_image(rle_masks):
