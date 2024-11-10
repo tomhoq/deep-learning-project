@@ -4,10 +4,11 @@
 ### General options
 
 ### –- specify queue --
-#BSUB -q gpuv100
+##BSUB -q gpuv100
+#BSUB -q gpua100
 
 ### -- set the job Name --
-#BSUB -J 241268-deep-learning-unet
+#BSUB -J 241268-deep-learning
 
 ### -- ask for number of cores (default: 1) --
 #BSUB -n 4
@@ -16,8 +17,8 @@
 #BSUB -gpu "num=1:mode=exclusive_process"
 
 ### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now
-#BSUB -W 24:00
-# request 5GB of system-memory
+#BSUB -W 5:00
+# request 12GB of system-memory
 #BSUB -R "rusage[mem=12GB]"
 
 ### -- set the email address --
@@ -26,15 +27,19 @@
 ##BSUB -u s242168@dtu.dk
 
 ### -- send notification at start --
-#BSUB -B
+##BSUB -B
 
 ### -- send notification at completion--
-#BSUB -N
+##BSUB -N
+
+### -- Specify how the cores are distributed across nodes --
+# The following means that all the cores must be on one single host
+#BSUB -R "span[hosts=1]"
 
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o job_out/unet/gpu_%J.out
-#BSUB -e job_out/unet/gpu_%J.err
+#BSUB -o job_out/gpu_%J.out
+#BSUB -e job_out/gpu_%J.err
 
 # -- end of LSF options --
 
@@ -61,16 +66,21 @@ source ${REPO}/.venv/bin/activate
 ##### TRAINING #####
 python3 ${REPO}/src/train.py ${MODEL} ${LOSS} ${OUT}
 
+# Move job stdout/stderr to correct folder
+mv ${REPO}/job_out/gpu_${LSB_JOBID}* ${OUT}
+
 
 ##### EVALUATION #####
-OUT=$(find . -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1 | sed 's|^\./||')  # Get the latest run
+LATEST_DATE=$(find . -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1 | sed 's|^\./||')  # Get the latest run
+LATEST_OUT=${REPO}/job_out/${MODEL}/${LATEST_DATE}
 
-if [[ ! -d ${REPO}/job_out/${MODEL}/${OUT}/evaluation ]]; then
-    mkdir ${REPO}/job_out/${MODEL}/${OUT}/evaluation
+if [[ ! -d ${LATEST_OUT}/evaluation ]]; then
+    mkdir ${LATEST_OUT}/evaluation
 fi
 
-python3 ${REPO}/src/evaluate.py ${MODEL} ${REPO}/job_out/${MODEL}/${OUT}
+python3 ${REPO}/src/evaluate.py ${MODEL} ${LATEST_OUT}
 
 
 ##### SUBMISSION #####
-python3 ${REPO}/src/make_submission.py ${MODEL} ${REPO}/job_out/${MODEL}/${OUT}
+python3 ${REPO}/src/make_submission.py ${MODEL} ${LATEST_OUT}
+kaggle competitions submit -c airbus-ship-detection -f ${LATEST_OUT}/submission.csv -m "Automatic submission ${LATEST_DATE}"

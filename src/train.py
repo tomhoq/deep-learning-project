@@ -9,8 +9,8 @@ from torch.nn import BCEWithLogitsLoss
 from sys import argv
 
 # Check arguments
-if len(argv) != 3:
-    raise ValueError("Expected exactly two arguments. Usage: python test.py <model> <loss_function> <out_path>.\n<model> = 'unet' | 'yolo'\n<loss_function> = 'bce' | 'jaccard' | 'dice'")
+if len(argv) != 4:
+    raise ValueError("Expected exactly three arguments. Usage: python train.py <model> <loss_function> <out_path>.\n<model> = 'unet' | 'yolo'\n<loss_function> = 'bce' | 'jaccard' | 'dice'")
 
 # Train run number
 RUN_ID = 1
