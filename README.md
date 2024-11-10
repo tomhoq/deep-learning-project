@@ -10,8 +10,11 @@ We're gonna use the following dataset: [Airbus Ship Detection Challenge](https:/
 From the **root of the repo** run, e.g.
 
 ```bash
-bsub < ./src/unet_jobscript.sh
+bsub < ./jobscripts/unet/jobscript_train.sh
 ```
+
+Then you can use `bstat` to check the job status.
+
 
 ### See real-time output
 
@@ -20,6 +23,7 @@ You can use `tail` to see the job log in real time, e.g.:
 ```bash
 tail gpu_23113941.out -f
 ```
+
 
 ### tqdm output interpretation
 
@@ -32,6 +36,8 @@ Epoch 3, lr 0.0001:  18%|█▊        | 7376/40432 [02:56<13:06, 42.02it/s, los
 - `42.02it/s`: This represents the processing speed, indicating that your model is processing 42.02 iterations (samples) per second.
 
 
+
+
 ## Evaluate on interactive GPU
 
 To just evaluate the model you can use the interactive nodes.
@@ -42,8 +48,10 @@ Type:
 voltash                         
 
 cd ~/deep-learning-project
-clear && ./src/unet_jobscript_evaluate.sh
+clear && ./jobscripts/unet/jobscript_evaluate.sh
 ```
+
+
 
 
 <br>
