@@ -32,6 +32,20 @@ Epoch 3, lr 0.0001:  18%|█▊        | 7376/40432 [02:56<13:06, 42.02it/s, los
 - `42.02it/s`: This represents the processing speed, indicating that your model is processing 42.02 iterations (samples) per second.
 
 
+## Evaluate on interactive GPU
+
+To just evaluate the model you can use the interactive nodes.
+
+Type:
+```sh
+# Enter an interactive node (alt: sxm2sh, a100sh)
+voltash                         
+
+cd ~/deep-learning-project
+clear && ./src/unet_jobscript_evaluate.sh
+```
+
+
 <br>
 
 # Synopsis
