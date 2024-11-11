@@ -77,6 +77,5 @@ train(
     n_epochs = N_EPOCHS,
     train_batch_size = BATCH_SIZE_TRAIN,
     valid_batch_size = BATCH_SIZE_VALID,
-    fold = RUN_ID,
     out_path = argv[3],
 )

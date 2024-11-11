@@ -22,7 +22,7 @@ def write_event(log, step: int, **data):
     log.flush()
 
 
-def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optimizer, out_path, train_batch_size=16, valid_batch_size=4, n_epochs=1, fold=1):
+def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optimizer, out_path, train_batch_size=16, valid_batch_size=4, n_epochs=1):
     """
     From https://github.com/ternaus/robot-surgery-segmentation
 
@@ -31,7 +31,7 @@ def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optim
     """
     
     # Restore model or start from scratch
-    model_path = Path(path.join(out_path, 'model_{fold}.pt'.format(fold=fold)))
+    model_path = Path(path.join(out_path, 'model.pt'))
     if model_path.exists():
         state = torch.load(str(model_path))
         epoch = state['epoch']
@@ -51,7 +51,7 @@ def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optim
 
     # Init logging
     report_each = 50
-    log = open(path.join(out_path, 'train_{fold}.log'.format(fold=fold)), 'at', encoding='utf8')
+    log = open(path.join(out_path, 'train.log'), 'at', encoding='utf8')
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[!] TRAINING USING {'GPU' if torch.cuda.is_available() else 'CPU'}")
