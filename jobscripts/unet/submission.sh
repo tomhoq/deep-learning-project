@@ -41,7 +41,7 @@
 
 MODEL=unet
 REPO=/zhome/82/4/212615/deep-learning-project
-OUT=$(find . -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1 | sed 's|^\./||')  # Get the latest run
+OUT=$(find ${REPO}/job_out/${MODEL} -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1 | sed 's#.*/##p' | head -n 1)  # Get the latest run
 
 if [[ ! -d ${REPO}/job_out/${MODEL}/${OUT}/evaluation ]]; then
     mkdir ${REPO}/job_out/${MODEL}/${OUT}/evaluation

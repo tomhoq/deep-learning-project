@@ -10,10 +10,15 @@ from utils.helpers import compare_model_outputs_with_ground_truths
 
 ########## Arguments ##########
 # Check arguments
-if len(argv) != 3:
-    raise ValueError("Expected exactly two arguments. Usage: python evaluate.py <model> <out_path>.\n<model> = 'unet' | 'yolo'")
+if len(argv) != 3 and len(argv) != 4:
+    raise ValueError("Expected two or three arguments. Usage: python evaluate.py <model> <out_path> <num_of_outputs = 1>.\n<model> = 'unet' | 'yolo'")
 
 out_path = argv[2]
+
+num_of_outputs = 1
+if len(argv) == 4:
+    num_of_outputs = int(argv[3])
+
 # TODO model = UNet() if argv[1] == 'unet' else YOLO()
 model = UNet(input_channels = 3, output_classes = 1)
 
@@ -63,16 +68,18 @@ train_df, valid_df = get_dataframes()
 train_transform, val_transform = get_transforms()
 val_dataset = AirbusDataset(valid_df, transform=val_transform, mode='validation')
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=8, shuffle=True, num_workers=0)
+loader_iter = iter(val_loader)
 
 # Display some images from loader
-images, gt = next(iter(val_loader))
-gt = gt.data.cpu()
-images = images.to(device)
-out = model(images)
-out = ((out > 0).float()) * 255
-images = images.data.cpu()
-out = out.data.cpu()
+for i in range(num_of_outputs):
+    images, gt = next(loader_iter)
+    gt = gt.data.cpu()
+    images = images.to(device)
+    out = model(images)
+    out = ((out > 0).float()) * 255
+    images = images.data.cpu()
+    out = out.data.cpu()
 
-compare_model_outputs_with_ground_truths(images, gt, out)
-plt.savefig(path.join(out_path, 'evaluation', 'model_vs_ground_truth.png'))
+    compare_model_outputs_with_ground_truths(images, gt, out)
+    plt.savefig(path.join(out_path, 'evaluation', f"model_vs_ground_truth_{i + 1}.png"))
 #####################################

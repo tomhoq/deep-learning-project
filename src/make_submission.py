@@ -20,7 +20,7 @@ out_path = argv[2]
 # TODO model = UNet() if argv[1] == 'unet' else YOLO()
 model = UNet(input_channels = 3, output_classes = 1)
 
-print(f"\n[*] Evaluating {'U-Net' if argv[1] == 'unet' else 'YOLO'} model")
+print(f"\n[*] Making submission {'U-Net' if argv[1] == 'unet' else 'YOLO'} model")
 
 
 ########## Load model ##########

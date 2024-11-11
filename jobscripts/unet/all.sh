@@ -46,7 +46,11 @@
 
 
 MODEL=unet
-LOSS=dice
+
+# LOSS=bce
+# LOSS=dice
+LOSS=jaccard
+
 REPO=/zhome/82/4/212615/deep-learning-project
 
 # Create job_out if it is not present
@@ -66,21 +70,23 @@ source ${REPO}/.venv/bin/activate
 ##### TRAINING #####
 python3 ${REPO}/src/train.py ${MODEL} ${LOSS} ${OUT}
 
-# Move job stdout/stderr to correct folder
-mv ${REPO}/job_out/gpu_${LSB_JOBID}* ${OUT}
-
 
 ##### EVALUATION #####
-LATEST_DATE=$(find . -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1 | sed 's|^\./||')  # Get the latest run
+LATEST_DATE=$(find ${REPO}/job_out/${MODEL} -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1 | sed 's#.*/##p' | head -n 1)  # Get the latest run
 LATEST_OUT=${REPO}/job_out/${MODEL}/${LATEST_DATE}
 
 if [[ ! -d ${LATEST_OUT}/evaluation ]]; then
     mkdir ${LATEST_OUT}/evaluation
 fi
 
-python3 ${REPO}/src/evaluate.py ${MODEL} ${LATEST_OUT}
+python3 ${REPO}/src/evaluate.py ${MODEL} ${LATEST_OUT} 5
 
 
 ##### SUBMISSION #####
 python3 ${REPO}/src/make_submission.py ${MODEL} ${LATEST_OUT}
 kaggle competitions submit -c airbus-ship-detection -f ${LATEST_OUT}/submission.csv -m "Automatic submission ${LATEST_DATE}"
+
+
+##### FINISHING #####
+# Move job stdout/stderr to correct folder
+mv ${REPO}/job_out/gpu_${LSB_JOBID}* ${OUT}
