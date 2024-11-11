@@ -58,8 +58,7 @@ if [[ ! -d ${REPO}/job_out ]]; then
 	mkdir ${REPO}/job_out
 fi
 
-date=$(date +%Y%m%d_%H%M)
-OUT=${REPO}/job_out/${MODEL}/${date}
+OUT=${REPO}/job_out/${MODEL}/${LSB_JOBID}
 mkdir -p ${OUT}
 
 # Activate venv
@@ -72,21 +71,18 @@ python3 ${REPO}/src/train.py ${MODEL} ${LOSS} ${OUT}
 
 
 ##### EVALUATION #####
-LATEST_DATE=$(find ${REPO}/job_out/${MODEL} -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1 | sed 's#.*/##p' | head -n 1)  # Get the latest run
-LATEST_OUT=${REPO}/job_out/${MODEL}/${LATEST_DATE}
-
-if [[ ! -d ${LATEST_OUT}/evaluation ]]; then
-    mkdir ${LATEST_OUT}/evaluation
+if [[ ! -d ${OUT}/evaluation ]]; then
+    mkdir ${OUT}/evaluation
 fi
 
-python3 ${REPO}/src/evaluate.py ${MODEL} ${LATEST_OUT} 5
+python3 ${REPO}/src/evaluate.py ${MODEL} ${OUT} 5
 
 
 ##### SUBMISSION #####
-python3 ${REPO}/src/make_submission.py ${MODEL} ${LATEST_OUT}
+python3 ${REPO}/src/make_submission.py ${MODEL} ${OUT}
 
 printf "\n[*] Submitting to Kaggle\n"
-kaggle competitions submit -c airbus-ship-detection -f ${LATEST_OUT}/submission.csv -m "Automatic submission ${LATEST_DATE}"
+kaggle competitions submit -c airbus-ship-detection -f ${OUT}/submission.csv -m "Automatic submission ${LSB_JOBID}"
 
 
 ##### FINISHING #####
