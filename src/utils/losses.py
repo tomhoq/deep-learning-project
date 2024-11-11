@@ -24,9 +24,10 @@ class BCEJaccardWithLogitsLoss(nn.Module):
             outputs = outputs.view(-1)
 
             intersection = (targets * outputs).sum()
-            union = outputs.sum() + targets.sum() - intersection
+            union = outputs.sum() + targets.sum() 
 
-            loss -= self.jaccard_weight * torch.log((intersection + self.smooth ) / (union + self.smooth )) # try with 1-dice
+            loss -= self.jaccard_weight * torch.log((intersection + self.smooth) / (union - intersection + self.smooth))
+
         return loss
 
 

@@ -54,8 +54,10 @@ def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optim
     log = open(path.join(out_path, 'train_{fold}.log'.format(fold=fold)), 'at', encoding='utf8')
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"[!] TRAINING USING {'GPU' if torch.cuda.is_available() else 'CPU'}\n\n")
+    print(f"[!] TRAINING USING {'GPU' if torch.cuda.is_available() else 'CPU'}")
     model = model.to(device)
+
+    print(f"[*] Training options: train_batch_size={train_batch_size}, valid_batch_size={valid_batch_size}, n_epochs={n_epochs}\n\n")
 
     for epoch in range(epoch, n_epochs + 1):
 

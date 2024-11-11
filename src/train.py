@@ -50,6 +50,9 @@ if loss == 'bce':
 elif loss == 'jaccard':
     loss_function = BCEJaccardWithLogitsLoss()
     print('[+] Using Jaccard loss')
+elif loss == 'jaccard2':
+    loss_function = BCEJaccardWithLogitsLoss(jaccard_weight=5, smooth=1e-15)
+    print('[+] Using Jaccard loss (jaccard_weight=5, smooth=1e-15)')
 elif loss == 'dice':
     loss_function = BCEDiceWithLogitsLoss()
     print('[+] Using DICE loss')
