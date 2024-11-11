@@ -114,7 +114,7 @@ def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optim
             print('done.')
             return
 
-        print("\n[+] Finished training")
+    print("\n[+] Finished training")
         
 
 def validation(model: nn.Module, loss_function, valid_loader, metrics, device):

@@ -52,6 +52,27 @@ class BCEDiceWithLogitsLoss(nn.Module):
         intersection = (outputs * targets).sum()
         dice = 2.0 * (intersection + self.smooth)  / (targets.sum() + outputs.sum() + self.smooth)
         
-        loss -= self.dice_weight * torch.log(dice) # try with 1- dice
+        loss -= self.dice_weight * torch.log(dice)
 
         return loss
+
+
+class DiceLoss(torch.nn.Module):
+    def __init__(self, smooth=1):
+        super(DiceLoss, self).__init__()
+        self.smooth = smooth
+
+    def forward(self, y_pred, y_true):
+        # Apply softmax if necessary
+        y_pred = F.softmax(y_pred, dim=1) if y_pred.size(1) > 1 else torch.sigmoid(y_pred)
+        
+        # Flatten tensors for intersection computation
+        y_pred = y_pred.view(-1)
+        y_true = y_true.view(-1)
+        
+        # Calculate Dice coefficient
+        intersection = (y_pred * y_true).sum()
+        dice_coeff = (2. * intersection + self.smooth) / (y_pred.sum() + y_true.sum() + self.smooth)
+        
+        # Return Dice loss (1 - Dice coefficient)
+        return 1 - dice_coeff

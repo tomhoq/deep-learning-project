@@ -1,6 +1,6 @@
 from utils.dataset import AirbusDataset, get_dataframes, get_transforms
 from utils.helpers import PATHS
-from utils.losses import BCEDiceWithLogitsLoss, BCEJaccardWithLogitsLoss
+from utils.losses import BCEDiceWithLogitsLoss, BCEJaccardWithLogitsLoss, DiceLoss
 from utils.train_validation import train
 from models.unet.src.unet import UNet
 from torch.optim import Adam
@@ -44,18 +44,28 @@ optimizer = Adam(model.parameters(), lr=LR)
 
 loss_function = None
 loss = argv[2]
+
+####################
 if loss == 'bce':
     loss_function = BCEWithLogitsLoss()
     print('[+] Using BCE loss')
+#
 elif loss == 'jaccard':
     loss_function = BCEJaccardWithLogitsLoss()
     print('[+] Using Jaccard loss')
+#
 elif loss == 'jaccard2':
     loss_function = BCEJaccardWithLogitsLoss(jaccard_weight=5, smooth=1e-15)
     print('[+] Using Jaccard loss (jaccard_weight=5, smooth=1e-15)')
+#
 elif loss == 'dice':
     loss_function = BCEDiceWithLogitsLoss()
     print('[+] Using DICE loss')
+elif loss == 'dice_no_bce':
+    loss_function = DiceLoss()
+    print('[+] Using DICE loss (but without BCE)')
+####################
+
 
 train(
     model = model,
