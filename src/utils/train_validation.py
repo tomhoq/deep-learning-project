@@ -57,7 +57,7 @@ def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optim
     print(f"[!] TRAINING USING {'GPU' if torch.cuda.is_available() else 'CPU'}")
     model = model.to(device)
 
-    print(f"[*] Training options: train_batch_size={train_batch_size}, valid_batch_size={valid_batch_size}, n_epochs={n_epochs}\n\n")
+    print(f"[*] Training options: lr={lr}, train_batch_size={train_batch_size}, valid_batch_size={valid_batch_size}, n_epochs={n_epochs}\n\n")
 
     for epoch in range(epoch, n_epochs + 1):
 
@@ -66,7 +66,7 @@ def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optim
         # For logging
         random.seed()
         tq = tqdm(total=len(train_loader) *  train_batch_size, file=stdout)
-        tq.set_description('Epoch {}, lr {}'.format(epoch, lr))
+        tq.set_description('Epoch {}'.format(epoch))
         losses = []
 
         try:
