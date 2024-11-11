@@ -26,10 +26,10 @@
 ##BSUB -u s242168@dtu.dk
 
 ### -- send notification at start --
-#BSUB -B
+##BSUB -B
 
 ### -- send notification at completion--
-#BSUB -N
+##BSUB -N
 
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --

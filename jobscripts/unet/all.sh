@@ -30,7 +30,7 @@
 ##BSUB -B
 
 ### -- send notification at completion--
-##BSUB -N
+#BSUB -N
 
 ### -- Specify how the cores are distributed across nodes --
 # The following means that all the cores must be on one single host
