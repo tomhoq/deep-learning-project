@@ -7,7 +7,7 @@
 #BSUB -q gpuv100
 
 ### -- set the job Name --
-#BSUB -J 241268-deep-learning-unet
+#BSUB -J 241268-deep-learning
 
 ### -- ask for number of cores (default: 1) --
 #BSUB -n 4
@@ -33,8 +33,8 @@
 
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o job_out/unet/gpu_%J.out
-#BSUB -e job_out/unet/gpu_%J.err
+#BSUB -o job_out/train_%J.out
+#BSUB -e job_out/train_%J.err
 
 # -- end of LSF options --
 

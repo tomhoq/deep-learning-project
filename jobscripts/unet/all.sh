@@ -38,8 +38,8 @@
 
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o job_out/gpu_%J.out
-#BSUB -e job_out/gpu_%J.err
+#BSUB -o job_out/all_%J.out
+#BSUB -e job_out/all_%J.err
 
 # -- end of LSF options --
 
