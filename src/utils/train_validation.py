@@ -131,7 +131,7 @@ def validation(model: nn.Module, loss_function, valid_loader, metrics, device):
     valid_loss = np.mean(losses)  # float
     valid_dice, valid_jaccard = metrics.get() # float
 
-    print('Valid loss: {:.5f}, Jaccard: {:.5f}, Dice: {:.5f}'.format(valid_loss, valid_jaccard, valid_dice))
+    print('    Valid loss: {:.5f}, Jaccard: {:.5f}, Dice: {:.5f}'.format(valid_loss, valid_jaccard, valid_dice))
 
     return { 
         'valid_loss': valid_loss, 
