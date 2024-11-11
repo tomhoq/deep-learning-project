@@ -65,4 +65,6 @@ for batch_num, (inputs, paths) in enumerate(tqdm(loader, desc='Test', file=stdou
 submission_df = pd.DataFrame(out_pred_rows)[['ImageId', 'EncodedPixels']]
 res_path = os.path.join(out_path, 'submission.csv')
 submission_df.to_csv(res_path, index=False)
+
+print("\n[+] Done. Sample of submission.csv:")
 print(submission_df.sample(10))

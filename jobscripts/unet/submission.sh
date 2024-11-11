@@ -51,5 +51,9 @@ fi
 module load python3/3.10.14
 source ${REPO}/.venv/bin/activate
 
-# run submission
+# Run submission
 python3 ${REPO}/src/make_submission.py ${MODEL} ${REPO}/job_out/${MODEL}/${OUT}
+
+# Submit to Kaggle
+printf "\n[*] Submitting to Kaggle\n"
+kaggle competitions submit -c airbus-ship-detection -f ${REPO}/job_out/${MODEL}/${OUT}/submission.csv -m "Automatic submission ${OUT}"

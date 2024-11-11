@@ -84,6 +84,8 @@ python3 ${REPO}/src/evaluate.py ${MODEL} ${LATEST_OUT} 5
 
 ##### SUBMISSION #####
 python3 ${REPO}/src/make_submission.py ${MODEL} ${LATEST_OUT}
+
+printf "\n[*] Submitting to Kaggle\n"
 kaggle competitions submit -c airbus-ship-detection -f ${LATEST_OUT}/submission.csv -m "Automatic submission ${LATEST_DATE}"
 
 
