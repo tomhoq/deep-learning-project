@@ -38,7 +38,7 @@ val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE_VALI
 
 
 # model = UNet() if argv[1] == 'unet' else YOLO()
-model = UNet(input_channels = 3, output_classes = 1)
+model = UNet()
 
 optimizer = Adam(model.parameters(), lr=LR)
 

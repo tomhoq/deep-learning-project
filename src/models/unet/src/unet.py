@@ -4,7 +4,7 @@ from .modules import DoubleConv, DecoderBlock, EncoderBlock
 
 
 class UNet(nn.Module):
-    def __init__(self, input_channels, output_classes):
+    def __init__(self, input_channels=3, output_classes=1):
         """
         Defines the U-Net architecture.
 

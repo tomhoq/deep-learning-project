@@ -84,7 +84,7 @@ python3 ${REPO}/src/evaluate.py ${MODEL} ${OUT} 5
 python3 ${REPO}/src/make_submission.py ${MODEL} ${OUT}
 
 printf "\n[*] Submitting to Kaggle\n"
-kaggle competitions submit -c airbus-ship-detection -f ${OUT}/submission.csv -m "Automatic submission ${LSB_JOBID}"
+kaggle competitions submit -c airbus-ship-detection -f ${OUT}/submission.csv -m "Automatic submission ${LSB_JOBID} - With ${LOSS}"
 
 
 ##### FINISHING #####

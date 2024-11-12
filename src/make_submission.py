@@ -18,7 +18,7 @@ if len(argv) != 3:
 
 out_path = argv[2]
 # TODO model = UNet() if argv[1] == 'unet' else YOLO()
-model = UNet(input_channels = 3, output_classes = 1)
+model = UNet()
 
 print(f"\n[*] Making submission {'U-Net' if argv[1] == 'unet' else 'YOLO'} model")
 

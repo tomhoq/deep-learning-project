@@ -20,7 +20,7 @@ if len(argv) == 4:
     num_of_outputs = int(argv[3])
 
 # TODO model = UNet() if argv[1] == 'unet' else YOLO()
-model = UNet(input_channels = 3, output_classes = 1)
+model = UNet()
 
 print(f"\n[*] Evaluating {'U-Net' if argv[1] == 'unet' else 'YOLO'} model")
 
