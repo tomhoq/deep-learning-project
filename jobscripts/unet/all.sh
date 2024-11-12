@@ -47,9 +47,11 @@
 
 MODEL=unet
 
-# LOSS=bce
+LOSS=bce
 # LOSS=dice
-LOSS=jaccard
+# LOSS=dice_no_bce
+# LOSS=jaccard
+# LOSS=jaccard2
 
 REPO=/zhome/82/4/212615/deep-learning-project
 
@@ -87,4 +89,4 @@ kaggle competitions submit -c airbus-ship-detection -f ${OUT}/submission.csv -m 
 
 ##### FINISHING #####
 # Move job stdout/stderr to correct folder
-mv ${REPO}/job_out/gpu_${LSB_JOBID}* ${OUT}
+mv ${REPO}/job_out/all_${LSB_JOBID}* ${OUT}

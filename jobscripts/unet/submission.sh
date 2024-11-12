@@ -43,10 +43,6 @@ MODEL=unet
 REPO=/zhome/82/4/212615/deep-learning-project
 OUT=$(find ${REPO}/job_out/${MODEL} -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1 | sed 's#.*/##p' | head -n 1)  # Get the latest run
 
-if [[ ! -d ${REPO}/job_out/${MODEL}/${OUT}/evaluation ]]; then
-    mkdir ${REPO}/job_out/${MODEL}/${OUT}/evaluation
-fi
-
 # Activate venv
 module load python3/3.10.14
 source ${REPO}/.venv/bin/activate

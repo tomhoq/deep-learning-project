@@ -27,7 +27,7 @@ print(f"\n[*] Evaluating {'U-Net' if argv[1] == 'unet' else 'YOLO'} model")
 
 ########## Plot losses ##########
 RUN_ID = 1
-log_file = path.join(out_path, 'train_{fold}.log'.format(fold=RUN_ID))
+log_file = path.join(out_path, 'train.log')
 logs = pd.read_json(log_file, lines=True)
 
 # plt.figure(figsize=(20,6))
@@ -51,7 +51,7 @@ plt.savefig(path.join(out_path, 'evaluation', 'loss.png'))
 
 
 ########## Model inference ##########
-model_path = path.join(out_path, 'model_{fold}.pt'.format(fold=RUN_ID))
+model_path = path.join(out_path, 'model.pt')
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"[!] RUNNING ON {'GPU' if torch.cuda.is_available() else 'CPU'}\n")

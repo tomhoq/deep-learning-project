@@ -25,7 +25,7 @@ print(f"\n[*] Making submission {'U-Net' if argv[1] == 'unet' else 'YOLO'} model
 
 ########## Load model ##########
 RUN_ID = 1
-model_path = os.path.join(out_path, 'model_{fold}.pt'.format(fold=RUN_ID))
+model_path = os.path.join(out_path, 'model.pt')
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"[!] RUNNING ON {'GPU' if torch.cuda.is_available() else 'CPU'}\n")
