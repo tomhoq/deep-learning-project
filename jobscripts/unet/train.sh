@@ -42,7 +42,7 @@
 
 MODEL=unet
 LOSS=dice
-REPO=/zhome/82/4/212615/deep-learning-project
+REPO=${HOME}/deep-learning-project
 
 # Create job_out if it is not present
 if [[ ! -d ${REPO}/job_out ]]; then
