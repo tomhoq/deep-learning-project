@@ -22,18 +22,26 @@ def write_event(log, step: int, **data):
     log.flush()
 
 
-def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optimizer, out_path, train_batch_size=16, valid_batch_size=4, n_epochs=1):
+def train(model: nn.Module, train_dataset, val_dataset, loss_function, lr, optimizer, out_path, train_batch_size, valid_batch_size, n_epochs, num_workers_per_gpu = 2):
     """
-    From https://github.com/ternaus/robot-surgery-segmentation
-
     Trains the given nn model. It can also stop and restart training from a file.
     Everything is logged into files.
     """
+
+    print('\n[*] Train samples : %d | Validation samples : %d' % (len(train_dataset), len(val_dataset)))
+
+    # Get loaders
+    num_gpus = torch.cuda.device_count()
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=train_batch_size, shuffle=True, num_workers=num_workers_per_gpu*num_gpus, pin_memory=torch.cuda.is_available())
+    valid_loader = torch.utils.data.DataLoader(val_dataset, batch_size=valid_batch_size, shuffle=True, num_workers=num_workers_per_gpu*num_gpus, pin_memory=torch.cuda.is_available())
     
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"[!] TRAINING USING {'GPU' if torch.cuda.is_available() else 'CPU'}")
+
     # Restore model or start from scratch
     model_path = Path(path.join(out_path, 'model.pt'))
     if model_path.exists():
-        state = torch.load(str(model_path))
+        state = torch.load(str(model_path), map_location=device, weights_only=False)
         epoch = state['epoch']
         step = state['step']
         model.load_state_dict(state['model'])
@@ -53,8 +61,6 @@ def train(model: nn.Module, train_loader, valid_loader, loss_function, lr, optim
     report_each = 50
     log = open(path.join(out_path, 'train.log'), 'at', encoding='utf8')
     
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"[!] TRAINING USING {'GPU' if torch.cuda.is_available() else 'CPU'}")
     model = model.to(device)
 
     print(f"[*] Training options: lr={lr}, train_batch_size={train_batch_size}, valid_batch_size={valid_batch_size}, n_epochs={n_epochs}\n\n")

@@ -1,31 +1,22 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-import torch
 import os
-import numpy as np
 from skimage.io import imread
+import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
-from .helpers import masks_as_image
-from .helpers import PATHS
+from utils.helpers import PATHS
 from utils.data_augmentation import CenterCrop, DualCompose, HorizontalFlip, RandomCrop, VerticalFlip
 
 
 class AirbusDataset(Dataset):
-    def __init__(self, in_df = None, transform=None, mode='train'):
+    def __init__(self, mode='train'):
 
-        if in_df is None:
-            df = get_dataframes()
-            in_df = df[0] if mode == 'train' else df[1]
-        
-        if transform is None:
-            t = get_transforms()
-            transform = t[0] if mode == 'train' else t[1]
+        in_df = _get_dataframes(mode)
+        self.image_ids = list(in_df['ImageId'])
+        self.y = list(in_df['has_ship'])
 
-        grp = list(in_df.groupby('ImageId'))
-        self.image_ids =  [_id for _id, _ in grp] 
-        self.image_masks = [m['EncodedPixels'].values for _,m in grp]
-        self.transform = transform
+        self.transform = _get_transforms(mode)
         self.mode = mode
         self.img_transform = transforms.Compose([
             transforms.ToTensor(),
@@ -48,31 +39,36 @@ class AirbusDataset(Dataset):
 
         # Get the image and the mask (= ground truth)
         img = imread(rgb_path)
-        mask = masks_as_image(self.image_masks[idx])
-        
-        if self.transform is not None: 
-            img, mask = self.transform(img, mask)
+        img, _ = self.transform(img)
+        img = self.img_transform(img)
 
         if (self.mode == 'train') | (self.mode == 'validation'):
-            return self.img_transform(img), torch.from_numpy(np.moveaxis(mask, -1, 0)).float()  
+            label = self.y[idx]
         else:
-            return self.img_transform(img), str(img_file_name)
+            label = 0
+        
+        label = torch.tensor(label, dtype=torch.float32).unsqueeze(0)
+        return img, label
 
 
 
 
-def get_dataframes():
+def _get_dataframes(mode):
     """
     Make the dataframes for the dataset. Check `eda.ipynb` for a more detailed explanation.
-    Basically we're returning a df that has been cleaned of corrupted images and images without ships.
+    Basically we're returning a df that has been cleaned of corrupted images.
     """
+
+    #corrupted images
+    exclude_list = ['6384c3e78.jpg','13703f040.jpg', '14715c06d.jpg',  '33e0ff2d5.jpg',
+                '4d4e09f2a.jpg', '877691df8.jpg', '8b909bb20.jpg', 'a8d99130e.jpg', 
+                'ad55c3143.jpg', 'c8260c541.jpg', 'd6c7f17c7.jpg', 'dc3e7c901.jpg',
+                'e44dffe88.jpg', 'ef87bad36.jpg', 'f083256d8.jpg']
 
     # Get all
     masks = pd.read_csv(os.path.join(PATHS['root'], 'train_ship_segmentations_v2.csv'))
     # Remove corrupted file
-    masks = masks[~masks['ImageId'].isin(['6384c3e78.jpg'])]
-    # Remove images without ships
-    masks = masks.dropna() 
+    masks = masks[~masks['ImageId'].isin(exclude_list)]
 
     # Split between train and validation sets
     # We use stratify to balance the number of ships per image between the two df
@@ -83,16 +79,25 @@ def get_dataframes():
     train_df = pd.merge(masks, train_ids)
     valid_df = pd.merge(masks, val_ids)
 
-    # Update the counts, set to 0 all the cases where the mask is not a valid one (i.e. not a string)
-    train_df['counts'] = train_df.apply(lambda c_row: c_row['counts'] if isinstance(c_row['EncodedPixels'], str) else 0, 1)
-    valid_df['counts'] = valid_df.apply(lambda c_row: c_row['counts'] if isinstance(c_row['EncodedPixels'], str) else 0, 1)
+    # Set has_ship =  if ship is present, otherwise 0
+    train_df['has_ship'] = train_df.apply(lambda c_row: 1 if isinstance(c_row['EncodedPixels'], str) else 0, 1)
+    valid_df['has_ship'] = valid_df.apply(lambda c_row: 1 if isinstance(c_row['EncodedPixels'], str) else 0, 1)
 
-    return train_df, valid_df
+    train_df = train_df.drop(columns=['EncodedPixels', 'counts'])
+    valid_df = valid_df.drop(columns=['EncodedPixels', 'counts'])
+
+    # Remove duplicate lines
+    train_df = train_df.groupby('ImageId').agg({ 'has_ship': 'first' }).reset_index()
+    valid_df = valid_df.groupby('ImageId').agg({ 'has_ship': 'first' }).reset_index()
+
+    if mode == 'train':
+        return train_df
+    else:
+        return valid_df
 
 
-
-def get_transforms():
+def _get_transforms(mode):
     train_transform = DualCompose([HorizontalFlip(), VerticalFlip(), RandomCrop((256,256,3))])
     val_transform = DualCompose([CenterCrop((512,512,3))])
 
-    return train_transform, val_transform
+    return train_transform if mode == 'train' else val_transform

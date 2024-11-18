@@ -1,53 +1,55 @@
-from utils.dataset import AirbusDataset, get_dataframes, get_transforms
-from utils.helpers import PATHS
 from utils.losses import BCEDiceWithLogitsLoss, BCEJaccardWithLogitsLoss, DiceLoss
 from utils.train_validation import train
 from models.unet.src.unet import UNet
-from torch.optim import Adam
+import utils
 import torch
-from torch.nn import BCEWithLogitsLoss
 from sys import argv
+from models.resnet34unet.resnet34unet import get_resnet34_unet
+from models.resnet34unet.dataset import AirbusDataset as ResnetDataset
+
 
 # Check arguments
 if len(argv) != 4:
     raise ValueError("Expected exactly three arguments. Usage: python train.py <model> <loss_function> <out_path>.\n<model> = 'unet' | 'yolo'\n<loss_function> = 'bce' | 'jaccard' | 'dice'")
 
-# Train run number
-RUN_ID = 1
-
-# Parameters
-BATCH_SIZE_TRAIN = 16
-BATCH_SIZE_VALID = 4
-LR = 1e-4
-N_EPOCHS = 3
-
-# Transforms
-train_transform, val_transform = get_transforms()
-
-# Initialize dataset
-train_df, valid_df = get_dataframes()
-train_dataset = AirbusDataset(train_df, transform=train_transform, mode='train')
-val_dataset = AirbusDataset(valid_df, transform=val_transform, mode='validation')
-
-print('\n[*] Train samples : %d | Validation samples : %d' % (len(train_dataset), len(val_dataset)))
-print(f"[*] Training {'U-Net' if argv[1] == 'unet' else 'YOLO'} model")
-
-# Get loaders
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE_TRAIN, shuffle=True, num_workers=0, pin_memory=torch.cuda.is_available())
-val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE_VALID, shuffle=True, num_workers=0, pin_memory=torch.cuda.is_available())
-
-
-# model = UNet() if argv[1] == 'unet' else YOLO()
-model = UNet()
-
-optimizer = Adam(model.parameters(), lr=LR)
-
-loss_function = None
-loss = argv[2]
 
 ####################
+model_argv = argv[1]
+model = None
+
+print(f"[+] MODEL = {model_argv}")
+
+if model_argv == 'unet':
+    model = UNet()
+    train_dataset = utils.dataset.AirbusDataset(mode='train')
+    val_dataset = utils.dataset.AirbusDataset(mode='validation')
+    BATCH_SIZE_TRAIN = 16
+    BATCH_SIZE_VALID = 4
+    LR = 1e-4
+    N_EPOCHS = 3
+    optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+
+elif model_argv == 'resnet34unet':
+    model = get_resnet34_unet()
+    train_dataset = ResnetDataset(mode='train')
+    val_dataset = ResnetDataset(mode='validation')
+    BATCH_SIZE_TRAIN = 128
+    BATCH_SIZE_VALID = 128
+    LR = 1e-5
+    N_EPOCHS = 20
+    WEIGHT_DECAY = 5e-4
+    # params_1x are the parameters of the network body, i.e., of all layers except the FC layers
+    params_1x = [param for name, param in model.named_parameters() if 'fc' not in str(name)]
+    optimizer = torch.optim.Adam([{ 'params':params_1x }, { 'params': model.fc.parameters(), 'lr': LR*10 }], lr=LR, weight_decay=WEIGHT_DECAY)
+####################
+
+
+####################
+loss = argv[2]
+loss_function = None
+
 if loss == 'bce':
-    loss_function = BCEWithLogitsLoss()
+    loss_function = torch.nn.BCEWithLogitsLoss()
     print('[+] Using BCE loss')
 #
 elif loss == 'jaccard':
@@ -61,6 +63,7 @@ elif loss == 'jaccard2':
 elif loss == 'dice':
     loss_function = BCEDiceWithLogitsLoss()
     print('[+] Using DICE loss')
+#
 elif loss == 'dice_no_bce':
     loss_function = DiceLoss()
     print('[+] Using DICE loss (but without BCE)')
@@ -69,8 +72,8 @@ elif loss == 'dice_no_bce':
 
 train(
     model = model,
-    train_loader = train_loader,
-    valid_loader = val_loader,
+    train_dataset = train_dataset,
+    val_dataset = val_dataset,
     loss_function = loss_function,
     lr = LR,
     optimizer = optimizer,
