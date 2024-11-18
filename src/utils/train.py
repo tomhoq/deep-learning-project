@@ -6,7 +6,6 @@ from tqdm import tqdm
 from datetime import datetime
 import json
 import numpy as np
-from .metrics import metrics
 from os import path
 from sys import stdout
 
@@ -22,7 +21,7 @@ def write_event(log, step: int, **data):
     log.flush()
 
 
-def train(model: nn.Module, train_dataset, val_dataset, loss_function, lr, optimizer, out_path, train_batch_size, valid_batch_size, n_epochs, num_workers_per_gpu = 2):
+def train(model: nn.Module, train_dataset, val_dataset, loss_function, validation_function, lr, optimizer, out_path, train_batch_size, valid_batch_size, n_epochs, num_workers_per_gpu = 2):
     """
     Trains the given nn model. It can also stop and restart training from a file.
     Everything is logged into files.
@@ -109,7 +108,7 @@ def train(model: nn.Module, train_dataset, val_dataset, loss_function, lr, optim
             save(epoch + 1)
             
             # Validation and logging
-            comb_loss_metrics = validation(model, loss_function, valid_loader, metrics(batch_size = valid_batch_size), device)
+            comb_loss_metrics = validation_function(model, loss_function, valid_loader, device)
             write_event(log, step, **comb_loss_metrics)
 
         # Save model if training is interrupted
@@ -121,26 +120,3 @@ def train(model: nn.Module, train_dataset, val_dataset, loss_function, lr, optim
             return
 
     print("\n[+] Finished training")
-        
-
-def validation(model: nn.Module, loss_function, valid_loader, metrics, device):
-    losses = []
-    model.eval()
-    
-    for inputs, targets in valid_loader:
-        inputs, targets = inputs.to(device), targets.to(device)
-        outputs = model(inputs)
-        loss = loss_function(outputs, targets)
-        losses.append(loss.item())
-        metrics.collect(outputs.detach().cpu(), targets.detach().cpu())
-    
-    valid_loss = np.mean(losses)  # float
-    valid_dice, valid_jaccard = metrics.get() # float
-
-    print('    Valid loss: {:.5f}, Jaccard: {:.5f}, Dice: {:.5f}'.format(valid_loss, valid_jaccard, valid_dice))
-
-    return { 
-        'valid_loss': valid_loss, 
-        'jaccard': valid_jaccard.item(), 
-        'dice': valid_dice.item() 
-    }

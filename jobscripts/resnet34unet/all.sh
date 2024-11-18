@@ -4,31 +4,31 @@
 ### General options
 
 ### –- specify queue --
-##BSUB -q gpuv100
-#BSUB -q gpua100
+#BSUB -q gpuv100
+##BSUB -q gpua100
 
 ### -- set the job Name --
 #BSUB -J 241268-deep-learning
 
 ### -- ask for number of cores (default: 1) --
-#BSUB -n 8
+#BSUB -n 4
 
 ### -- Select the resources: 1 gpu in exclusive process mode --
-#BSUB -gpu "num=2:mode=exclusive_process"
+#BSUB -gpu "num=1:mode=exclusive_process"
 
 ### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now
-#BSUB -W 2:00
+#BSUB -W 3:00
 
 # request system-memory (per core)
-#BSUB -R "rusage[mem=8GB]"
+#BSUB -R "rusage[mem=4GB]"
 
 ### -- Specify how the cores are distributed across nodes --
 # The following means that all the cores must be on one single host
 #BSUB -R "span[hosts=1]"
 
 ### -- Specify the output and error file --
-#BSUB -o job_out/all_%J.out
-#BSUB -e job_out/all_%J.err
+#BSUB -o job_out/resnet34unet/%J/all_%J.out
+#BSUB -e job_out/resnet34unet/%J/all_%J.err
 
 # -- end of LSF options --
 
@@ -41,10 +41,6 @@ LOSS=bce
 
 REPO=${HOME}/deep-learning-project
 
-# Create job_out if it is not present
-if [[ ! -d ${REPO}/job_out ]]; then
-	mkdir ${REPO}/job_out
-fi
 
 OUT=${REPO}/job_out/${MODEL}/${LSB_JOBID}
 mkdir -p ${OUT}
@@ -60,4 +56,4 @@ python3 ${REPO}/src/train.py ${MODEL} ${LOSS} ${OUT}
 
 ##### FINISHING #####
 # Move job stdout/stderr to correct folder
-mv ${REPO}/job_out/all_${LSB_JOBID}* ${OUT}
+# mv ${REPO}/job_out/all_${LSB_JOBID}* ${OUT}

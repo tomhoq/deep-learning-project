@@ -28,7 +28,7 @@ def compute_metrics(pred, true, batch_size=16, threshold=0.5):
     
 
 
-class metrics:
+class Metrics:
     def __init__(self, batch_size=16, threshold=0.5):
         self.threshold = threshold
         self.batchsize = batch_size
