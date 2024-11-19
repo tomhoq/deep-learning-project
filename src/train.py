@@ -18,7 +18,7 @@ if len(argv) != 4:
 model_argv = argv[1]
 model = None
 
-print(f"[+] MODEL = {model_argv}")
+print(f"\n[+] MODEL = {model_argv}")
 
 if model_argv == 'unet':
     model = UNet()
@@ -42,7 +42,7 @@ elif model_argv == 'resnet34unet':
     WEIGHT_DECAY = 5e-4
     # params_1x are the parameters of the network body, i.e., of all layers except the FC layers
     params_1x = [param for name, param in model.named_parameters() if 'fc' not in str(name)]
-    optimizer = torch.optim.Adam([{ 'params':params_1x }, { 'params': model.fc.parameters(), 'lr': LR*10 }], lr=LR, weight_decay=WEIGHT_DECAY)
+    optimizer = torch.optim.Adam([{ 'params': params_1x }, { 'params': model.fc.parameters(), 'lr': LR*10 }], lr=LR, weight_decay=WEIGHT_DECAY)
     val_fun = resnet_validation
 ####################
 
@@ -54,6 +54,9 @@ loss_function = None
 if loss == 'bce':
     loss_function = torch.nn.BCEWithLogitsLoss()
     print('[+] Using BCE loss')
+elif loss == 'cross_entropy':
+    loss_function = torch.nn.CrossEntropyLoss()
+    print('[+] Using CrossEntropyLoss')
 #
 elif loss == 'jaccard':
     loss_function = BCEJaccardWithLogitsLoss()

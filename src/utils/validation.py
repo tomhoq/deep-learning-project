@@ -3,6 +3,7 @@ import numpy as np
 from .metrics import Metrics
 
 
+@torch.no_grad()
 def validation(model: torch.nn.Module, loss_function, valid_loader, device):
     losses = []
     model.eval()

@@ -20,15 +20,17 @@
 #BSUB -W 3:00
 
 # request system-memory (per core)
-#BSUB -R "rusage[mem=4GB]"
+#BSUB -R "rusage[mem=3GB]"
+
+##BSUB -R "select[gpu80gb]"
 
 ### -- Specify how the cores are distributed across nodes --
 # The following means that all the cores must be on one single host
 #BSUB -R "span[hosts=1]"
 
 ### -- Specify the output and error file --
-#BSUB -o job_out/resnet34unet/%J/all_%J.out
-#BSUB -e job_out/resnet34unet/%J/all_%J.err
+#BSUB -o job_out/resnet34unet/all_%J.out
+#BSUB -e job_out/resnet34unet/all_%J.err
 
 # -- end of LSF options --
 
@@ -36,7 +38,7 @@
 
 
 MODEL=resnet34unet
-LOSS=bce
+LOSS=cross_entropy
 
 
 REPO=${HOME}/deep-learning-project
@@ -54,6 +56,6 @@ source ${REPO}/.venv/bin/activate
 python3 ${REPO}/src/train.py ${MODEL} ${LOSS} ${OUT}
 
 
-##### FINISHING #####
-# Move job stdout/stderr to correct folder
-# mv ${REPO}/job_out/all_${LSB_JOBID}* ${OUT}
+#### FINISHING ####
+# mv ${REPO}/job_out/${MODEL}/all_${LSB_JOBID}* ${OUT}
+

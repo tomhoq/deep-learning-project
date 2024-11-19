@@ -38,8 +38,8 @@
 
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o job_out/all_%J.out
-#BSUB -e job_out/all_%J.err
+#BSUB -o job_out/unet/all_%J.out
+#BSUB -e job_out/unet/all_%J.err
 
 # -- end of LSF options --
 
@@ -55,10 +55,6 @@ LOSS=bce
 
 REPO=${HOME}/deep-learning-project
 
-# Create job_out if it is not present
-if [[ ! -d ${REPO}/job_out ]]; then
-	mkdir ${REPO}/job_out
-fi
 
 OUT=${REPO}/job_out/${MODEL}/${LSB_JOBID}
 mkdir -p ${OUT}
@@ -87,6 +83,6 @@ printf "\n[*] Submitting to Kaggle\n"
 kaggle competitions submit -c airbus-ship-detection -f ${OUT}/submission.csv -m "Automatic submission ${LSB_JOBID} - With ${LOSS}"
 
 
-##### FINISHING #####
-# Move job stdout/stderr to correct folder
-mv ${REPO}/job_out/all_${LSB_JOBID}* ${OUT}
+#### FINISHING ####
+# mv ${REPO}/job_out/${MODEL}/all_${LSB_JOBID}* ${OUT}
+

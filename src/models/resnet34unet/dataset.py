@@ -47,7 +47,7 @@ class AirbusDataset(Dataset):
         else:
             label = 0
         
-        label = torch.tensor(label, dtype=torch.float32).unsqueeze(0)
+        # label = torch.tensor(label, dtype=torch.float32).unsqueeze(0)
         return img, label
 
 

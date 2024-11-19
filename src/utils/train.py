@@ -27,7 +27,7 @@ def train(model: nn.Module, train_dataset, val_dataset, loss_function, validatio
     Everything is logged into files.
     """
 
-    print('\n[*] Train samples : %d | Validation samples : %d' % (len(train_dataset), len(val_dataset)))
+    print('[*] Train samples : %d | Validation samples : %d' % (len(train_dataset), len(val_dataset)))
 
     # Get loaders
     num_gpus = torch.cuda.device_count()
@@ -44,7 +44,7 @@ def train(model: nn.Module, train_dataset, val_dataset, loss_function, validatio
         epoch = state['epoch']
         step = state['step']
         model.load_state_dict(state['model'])
-        print('Restored model, epoch {}, step {:,}'.format(epoch, step))
+        print('[*] Restored model, epoch {}, step {:,}'.format(epoch, step))
     else:
         epoch = 1
         step = 0
@@ -62,7 +62,7 @@ def train(model: nn.Module, train_dataset, val_dataset, loss_function, validatio
     
     model = model.to(device)
 
-    print(f"[*] Training options: lr={lr}, train_batch_size={train_batch_size}, valid_batch_size={valid_batch_size}, n_epochs={n_epochs}\n\n")
+    print(f"[*] Training options: lr={lr}, train_batch_size={train_batch_size}, valid_batch_size={valid_batch_size}, n_epochs={n_epochs}\n")
 
     for epoch in range(epoch, n_epochs + 1):
 
