@@ -16,7 +16,8 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device):
         loss = loss_function(outputs, targets)
         valid_loss += loss * valid_loader.batch_size
 
-        correct = torch.argmax(F.softmax(outputs, dim=1), dim=1) == targets
+        # correct = torch.argmax(F.softmax(outputs, dim=1), dim=1) == targets
+        correct = (outputs >= 0.5) == targets
         tot += correct.shape[0]
         num_correct += correct.sum()
 

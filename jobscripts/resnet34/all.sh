@@ -8,7 +8,7 @@
 ##BSUB -q gpua100
 
 ### -- set the job Name --
-#BSUB -J 241268-deep-learning
+#BSUB -J 241268-resnet34
 
 ### -- ask for number of cores (default: 1) --
 #BSUB -n 4
@@ -22,22 +22,20 @@
 # request system-memory (per core)
 #BSUB -R "rusage[mem=2GB]"
 
-##BSUB -R "select[gpu80gb]"
-
 ### -- Specify how the cores are distributed across nodes --
 # The following means that all the cores must be on one single host
 #BSUB -R "span[hosts=1]"
 
 ### -- Specify the output and error file --
-#BSUB -o job_out/resnet34unet/%J/all_%J.out
-#BSUB -e job_out/resnet34unet/%J/all_%J.err
+#BSUB -o job_out/resnet34/%J/all_%J.out
+#BSUB -e job_out/resnet34/%J/all_%J.err
 
 # -- end of LSF options --
 
 
 
 
-MODEL=resnet34unet
+MODEL=resnet34
 LOSS=cross_entropy
 
 

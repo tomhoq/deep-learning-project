@@ -8,7 +8,7 @@
 #BSUB -q gpua100
 
 ### -- set the job Name --
-#BSUB -J 241268-deep-learning
+#BSUB -J 241268-unet
 
 ### -- ask for number of cores (default: 1) --
 #BSUB -n 4
@@ -18,34 +18,24 @@
 
 ### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now
 #BSUB -W 5:00
-# request 12GB of system-memory
-#BSUB -R "rusage[mem=12GB]"
 
-### -- set the email address --
-# please uncomment the following line and put in your e-mail address,
-# if you want to receive e-mail notifications on a non-default address
-##BSUB -u s242168@dtu.dk
-
-### -- send notification at start --
-##BSUB -B
-
-### -- send notification at completion--
-#BSUB -N
+# request system-memory (per core)
+#BSUB -R "rusage[mem=4GB]"
 
 ### -- Specify how the cores are distributed across nodes --
 # The following means that all the cores must be on one single host
 #BSUB -R "span[hosts=1]"
 
 ### -- Specify the output and error file. %J is the job-id --
-### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o job_out/unet/all_%J.out
-#BSUB -e job_out/unet/all_%J.err
+#BSUB -o job_out/unet_all_%J.out
+#BSUB -e job_out/unet_all_%J.err
 
 # -- end of LSF options --
 
 
 
-MODEL=unet
+#MODEL=unet
+MODEL=unet_resnet34
 
 LOSS=bce
 # LOSS=dice

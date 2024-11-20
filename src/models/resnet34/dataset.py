@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import os
+import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
@@ -40,7 +41,7 @@ class AirbusDataset(Dataset):
         else:
             label = 0
         
-        # label = torch.tensor(label, dtype=torch.float32).unsqueeze(0)
+        label = torch.tensor(label, dtype=torch.float32).unsqueeze(0)
         return img, label
 
 
@@ -90,7 +91,7 @@ def _get_dataframes(mode):
 
 
 def _get_transforms(mode):
-    img_dimensions = 224
+    img_dimensions = 384
 
     # Normalize to the ImageNet mean and standard deviation
     # Could calculate it for the cats/dogs data set, but the ImageNet
