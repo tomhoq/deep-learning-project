@@ -59,11 +59,11 @@ python3 ${REPO}/src/train.py ${MODEL} ${LOSS} ${OUT}
 
 
 ##### EVALUATION #####
-# if [[ ! -d ${OUT}/evaluation ]]; then
-#     mkdir ${OUT}/evaluation
-# fi
+if [[ ! -d ${OUT}/evaluation ]]; then
+    mkdir ${OUT}/evaluation
+fi
 
-# python3 ${REPO}/src/evaluate.py ${MODEL} ${OUT} 5
+python3 ${REPO}/src/evaluate.py ${MODEL} ${OUT} 5
 
 
 ##### SUBMISSION #####
