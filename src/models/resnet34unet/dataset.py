@@ -1,8 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import os
-from skimage.io import imread
-import torch
+from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 from utils.helpers import PATHS
@@ -18,10 +17,6 @@ class AirbusDataset(Dataset):
 
         self.transform = _get_transforms(mode)
         self.mode = mode
-        self.img_transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])]    # use mean and std from ImageNet 
-        )
 
 
     def __len__(self):
@@ -33,14 +28,12 @@ class AirbusDataset(Dataset):
 
         # Get the image either from the TRAIN folder or the TEST folder (depending on the mode)
         if (self.mode == 'train') | (self.mode == 'validation'):
-            rgb_path = os.path.join(PATHS['train'], img_file_name)
+            img_path = os.path.join(PATHS['train'], img_file_name)
         else:
-            rgb_path = os.path.join(PATHS['test'], img_file_name)
+            img_path = os.path.join(PATHS['test'], img_file_name)
 
-        # Get the image and the mask (= ground truth)
-        img = imread(rgb_path)
-        img, _ = self.transform(img)
-        img = self.img_transform(img)
+        img = Image.open(img_path)
+        img = self.transform(img)
 
         if (self.mode == 'train') | (self.mode == 'validation'):
             label = self.y[idx]
@@ -97,7 +90,24 @@ def _get_dataframes(mode):
 
 
 def _get_transforms(mode):
-    train_transform = DualCompose([HorizontalFlip(), VerticalFlip(), RandomCrop((256,256,3))])
-    val_transform = DualCompose([CenterCrop((512,512,3))])
+    img_dimensions = 224
+
+    # Normalize to the ImageNet mean and standard deviation
+    # Could calculate it for the cats/dogs data set, but the ImageNet
+    # values give acceptable results here.
+    train_transform = transforms.Compose([
+        transforms.RandomRotation(50),
+        transforms.RandomAffine(degrees = 0, translate = (0.2, 0.2)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.Resize((img_dimensions, img_dimensions)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
+    ])
+
+    val_transform = transforms.Compose([
+        transforms.Resize((img_dimensions, img_dimensions)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
+    ])
 
     return train_transform if mode == 'train' else val_transform

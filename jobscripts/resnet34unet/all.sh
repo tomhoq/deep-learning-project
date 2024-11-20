@@ -17,10 +17,10 @@
 #BSUB -gpu "num=1:mode=exclusive_process"
 
 ### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now
-#BSUB -W 3:00
+#BSUB -W 5:00
 
 # request system-memory (per core)
-#BSUB -R "rusage[mem=3GB]"
+#BSUB -R "rusage[mem=2GB]"
 
 ##BSUB -R "select[gpu80gb]"
 
@@ -29,8 +29,8 @@
 #BSUB -R "span[hosts=1]"
 
 ### -- Specify the output and error file --
-#BSUB -o job_out/resnet34unet/all_%J.out
-#BSUB -e job_out/resnet34unet/all_%J.err
+#BSUB -o job_out/resnet34unet/%J/all_%J.out
+#BSUB -e job_out/resnet34unet/%J/all_%J.err
 
 # -- end of LSF options --
 
@@ -53,7 +53,7 @@ source ${REPO}/.venv/bin/activate
 
 
 ##### TRAINING #####
-python3 ${REPO}/src/train.py ${MODEL} ${LOSS} ${OUT}
+python3 ${REPO}/src/train_resnet.py ${OUT}
 
 
 #### FINISHING ####
