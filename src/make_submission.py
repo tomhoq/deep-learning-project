@@ -1,11 +1,10 @@
 import os
 from sys import argv, stdout
-import numpy as np
-import pandas as pd
 from skimage.morphology import binary_opening, disk
 import torch
+import pandas as pd
 from tqdm import tqdm
-from models.unet.src.unet import UNet
+from utils.get_model import get_model
 from utils.dataset import AirbusDataset
 from utils.helpers import PATHS, multi_rle_encode
 import torch.nn.functional as F
@@ -16,15 +15,15 @@ import torch.nn.functional as F
 if len(argv) != 3:
     raise ValueError("Expected exactly two arguments. Usage: python evaluate.py <model> <out_path>.\n<model> = 'unet' | 'yolo'")
 
+model_name = argv[1]
 out_path = argv[2]
-# TODO model = UNet() if argv[1] == 'unet' else YOLO()
-model = UNet()
 
-print(f"\n[*] Making submission {'U-Net' if argv[1] == 'unet' else 'YOLO'} model")
+model = get_model(model_name)
+
+print(f"\n[*] Making submission for {model_name} model")
 
 
 ########## Load model ##########
-RUN_ID = 1
 model_path = os.path.join(out_path, 'model.pt')
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

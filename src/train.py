@@ -1,3 +1,4 @@
+from utils.get_model import get_model
 from utils.losses import BCEDiceWithLogitsLoss, BCEJaccardWithLogitsLoss, DiceLoss
 from utils.train import train
 from models.unet.src.unet import UNet
@@ -10,7 +11,8 @@ from utils.validation import validation as unet_validation
 if len(argv) != 4:
     raise ValueError("Expected exactly three arguments. Usage: python train.py <model> <loss_function> <out_path>.\n<model> = 'unet' | 'yolo'\n<loss_function> = 'bce' | 'jaccard' | 'dice'")
 
-
+model_argv = argv[1]
+print(f"\n[+] MODEL = {model_argv}")
 
 BATCH_SIZE_TRAIN = 16
 BATCH_SIZE_VALID = 4
@@ -19,25 +21,6 @@ N_EPOCHS = 3
 
 train_dataset = AirbusDataset(mode='train')
 val_dataset = AirbusDataset(mode='validation')
-
-
-####################
-model_argv = argv[1]
-model = None
-
-print(f"\n[+] MODEL = {model_argv}")
-
-if model_argv == 'unet':
-    model = UNet()
-
-elif model_argv == 'unet_resnet34':
-    import segmentation_models_pytorch as smp
-    model = smp.Unet("resnet34", encoder_weights="imagenet", activation=None)
-    # if FREEZE_RESNET == True:
-    #     for name, p in model.named_parameters():
-    #         if "encoder" in name:
-    #             p.requires_grad = False
-####################
 
 
 ####################
@@ -68,6 +51,8 @@ elif loss == 'dice_no_bce':
     print('[+] Using DICE loss (but without BCE)')
 ####################
 
+
+model = get_model(model_argv)
 
 train(
     model = model,
