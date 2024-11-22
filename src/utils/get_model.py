@@ -1,18 +1,28 @@
 from typing import Literal
+import torch
 from torch.nn import Module
 
 
-def get_model(model_name: Literal['unet', 'unet_resnet34']) -> Module:
 
+def get_model(model_name: Literal['unet', 'unet_resnet34']) -> Module:
+    #---------------------------------------- 
     if model_name == 'unet':
         from models.unet.src.unet import UNet
-        return UNet()
-
+        model = UNet()
+    # ----------------------------------------
+    elif model_name  == 'unet34':
+        from models.unet34.unet34 import Unet34
+        model = Unet34()
+        model.freeze_resnet()
+    # ----------------------------------------
+    elif model_name  == 'yolo':
+        from models.yolo.yolo import YOLO
+        model = YOLO()
+    # ----------------------------------------
     elif model_name  == 'unet_resnet34':
         import segmentation_models_pytorch as smp
         model = smp.Unet("resnet34", encoder_weights="imagenet", activation=None)
-        # if FREEZE_RESNET == True:
-        #     for name, p in model.named_parameters():
-        #         if "encoder" in name:
-        #             p.requires_grad = False
-        return model
+    #---------------------------------------- 
+
+    torch.compile(model)
+    return model

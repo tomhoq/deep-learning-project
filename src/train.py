@@ -1,5 +1,5 @@
 from utils.get_model import get_model
-from utils.losses import BCEDiceWithLogitsLoss, BCEJaccardWithLogitsLoss, DiceLoss
+from utils.losses import BCEDiceWithLogitsLoss, BCEJaccardWithLogitsLoss, DiceLoss, MixedLoss
 from utils.train import train
 from models.unet.src.unet import UNet
 from utils.dataset import AirbusDataset
@@ -49,6 +49,10 @@ elif loss == 'dice':
 elif loss == 'dice_no_bce':
     loss_function = DiceLoss()
     print('[+] Using DICE loss (but without BCE)')
+#
+elif loss == 'mixed':
+    loss_function = MixedLoss(10.0, 2.0)
+    print('[+] Using MixedLoss(10.0, 2.0)')
 ####################
 
 

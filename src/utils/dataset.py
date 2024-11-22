@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 from .helpers import masks_as_image
 from .helpers import PATHS
-from utils.data_augmentation import CenterCrop, DualCompose, HorizontalFlip, RandomCrop, VerticalFlip
+from utils.data_augmentation import CenterCrop, DualCompose, HorizontalFlip, RandomCrop, RandomLighting, Rotate, VerticalFlip
 
 
 class AirbusDataset(Dataset):
@@ -69,8 +69,13 @@ def get_dataframes():
 
     # Get all
     masks = pd.read_csv(os.path.join(PATHS['root'], 'train_ship_segmentations_v2.csv'))
+    # Corrupted images
+    exclude_list = ['6384c3e78.jpg','13703f040.jpg', '14715c06d.jpg',  '33e0ff2d5.jpg',
+                '4d4e09f2a.jpg', '877691df8.jpg', '8b909bb20.jpg', 'a8d99130e.jpg', 
+                'ad55c3143.jpg', 'c8260c541.jpg', 'd6c7f17c7.jpg', 'dc3e7c901.jpg',
+                'e44dffe88.jpg', 'ef87bad36.jpg', 'f083256d8.jpg']
     # Remove corrupted file
-    masks = masks[~masks['ImageId'].isin(['6384c3e78.jpg'])]
+    masks = masks[~masks['ImageId'].isin(exclude_list)]
     # Remove images without ships
     masks = masks.dropna() 
 
@@ -92,7 +97,15 @@ def get_dataframes():
 
 
 def get_transforms():
-    train_transform = DualCompose([HorizontalFlip(), VerticalFlip(), RandomCrop((256,256,3))])
+    image_size = 384
+
+    train_transform = DualCompose([
+        Rotate(20),
+        RandomLighting(0.05, 0.05),
+        HorizontalFlip(),
+        VerticalFlip(),
+        RandomCrop((image_size,image_size,3))
+    ])
     val_transform = DualCompose([CenterCrop((512,512,3))])
 
     return train_transform, val_transform

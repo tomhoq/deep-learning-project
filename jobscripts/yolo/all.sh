@@ -8,7 +8,7 @@
 ##BSUB -q gpua100
 
 ### -- set the job Name --
-#BSUB -J 241268-unet
+#BSUB -J 241268-yolo
 
 ### -- ask for number of cores (default: 1) --
 #BSUB -n 4
@@ -27,23 +27,21 @@
 #BSUB -R "span[hosts=1]"
 
 ### -- Specify the output and error file. %J is the job-id --
-#BSUB -o job_out/unet_all_%J.out
-#BSUB -e job_out/unet_all_%J.err
+#BSUB -o job_out/yolo_all_%J.out
+#BSUB -e job_out/yolo_all_%J.err
 
 # -- end of LSF options --
 
 
 
-# MODEL=unet
-# MODEL=unet_resnet34
-MODEL=unet34
+MODEL=yolo
 
-# LOSS=bce
+LOSS=bce
 # LOSS=dice
 # LOSS=dice_no_bce
 # LOSS=jaccard
 # LOSS=jaccard2
-LOSS=mixed
+# LOSS=mixed
 
 REPO=${HOME}/deep-learning-project
 
