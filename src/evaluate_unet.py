@@ -66,11 +66,10 @@ model.load_state_dict(state)
 model = model.to(device)
 model.eval()
 
-
 # Load data
-_, valid_df = get_dataframes()
-_, val_transform = get_transforms()
-val_dataset = AirbusDataset(valid_df, transform=val_transform, mode='validation')
+df = get_dataframes()
+train_dataset = AirbusDataset(mode='train', in_df=df['train'])
+val_dataset = AirbusDataset(mode='validation', in_df=df['validation'])
 
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=8, shuffle=True, num_workers=0)
 loader_iter = iter(val_loader)

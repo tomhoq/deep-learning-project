@@ -3,29 +3,28 @@ from utils.get_model import get_model
 from utils.losses import BCEDiceWithLogitsLoss, BCEJaccardWithLogitsLoss, DiceLoss, MixedLoss
 from utils.train import train
 from models.unet.src.unet import UNet
-from utils.dataset import AirbusDataset
+from utils.dataset import AirbusDataset, get_dataframes
 import torch
 from sys import argv
 from utils.validation import validation as unet_validation
 
 # Check arguments
 if len(argv) != 4:
-    raise ValueError("Expected exactly three arguments. Usage: python train.py <model> <loss_function> <out_path>.\n<model> = 'unet' | 'yolo'\n<loss_function> = 'bce' | 'jaccard' | 'dice'")
+    raise ValueError("Expected exactly three arguments. Usage: python train.py <model> <loss_function> <out_path>.")
 
 model_argv = argv[1]
+loss = argv[2]
+out_path = argv[3]
+
 print(f"\n[+] MODEL = {model_argv}")
 
-BATCH_SIZE_TRAIN = 16
-BATCH_SIZE_VALID = 4
-LR = 1e-4
-N_EPOCHS = 3
 
-train_dataset = AirbusDataset(mode='train')
-val_dataset = AirbusDataset(mode='validation')
+df = get_dataframes()
+train_dataset = AirbusDataset(mode='train', in_df=df['train'])
+val_dataset = AirbusDataset(mode='validation', in_df=df['validation'])
 
 
 ####################
-loss = argv[2]
 loss_function = None
 
 if loss == 'bce':
@@ -57,7 +56,16 @@ elif loss == 'mixed':
 ####################
 
 
+##### TRAIN #####
+
+BATCH_SIZE_TRAIN = 16
+BATCH_SIZE_VALID = 4
+LR = 1e-4
+N_EPOCHS = 3
+
 model = get_model(model_argv)
+optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, factor=0.1, patience=3, mode='max')
 
 train(
     model = model,
@@ -67,8 +75,9 @@ train(
     validation_function = unet_validation,
     lr = LR,
     optimizer = torch.optim.Adam(model.parameters(), lr=LR),
+    scheduler = scheduler,
     n_epochs = N_EPOCHS,
     train_batch_size = BATCH_SIZE_TRAIN,
     valid_batch_size = BATCH_SIZE_VALID,
-    out_path = argv[3],
+    out_path = out_path,
 )

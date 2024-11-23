@@ -12,12 +12,7 @@ from utils.data_augmentation import CenterCrop, DualCompose, HorizontalFlip, Ran
 
 
 class AirbusDataset(Dataset):
-    def __init__(self, in_df = None, transform=None, mode='train'):
-
-        if in_df is None:
-            df = get_dataframes()
-            in_df = df[0] if mode == 'train' else df[1]
-        
+    def __init__(self, in_df, transform=None, mode='train'):
         if transform is None:
             t = get_transforms()
             transform = t[0] if mode == 'train' else t[1]
@@ -92,7 +87,10 @@ def get_dataframes():
     train_df['counts'] = train_df.apply(lambda c_row: c_row['counts'] if isinstance(c_row['EncodedPixels'], str) else 0, 1)
     valid_df['counts'] = valid_df.apply(lambda c_row: c_row['counts'] if isinstance(c_row['EncodedPixels'], str) else 0, 1)
 
-    return train_df, valid_df
+    return {
+        'train': train_df,
+        'validation': valid_df
+    }
 
 
 

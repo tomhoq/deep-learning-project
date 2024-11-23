@@ -51,6 +51,8 @@ def train(
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[!] TRAINING USING {'GPU' if torch.cuda.is_available() else 'CPU'}")
 
+    torch.compile(model)
+
     # Restore model or start from scratch
     model_path = Path(path.join(out_path, 'model.pt'))
     if model_path.exists():

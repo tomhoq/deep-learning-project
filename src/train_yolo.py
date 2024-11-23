@@ -37,8 +37,6 @@ model = get_model("yolo")
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, factor=0.1, patience=3, mode='max')
 
-torch.compile(model)
-
 train(
     model = model,
     train_dataset = train_dataset,

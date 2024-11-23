@@ -4,7 +4,7 @@ from .metrics import Metrics
 
 
 @torch.no_grad()
-def validation(model: torch.nn.Module, loss_function, valid_loader, device, scheduler = None):
+def validation(model: torch.nn.Module, loss_function, valid_loader, device, scheduler):
     losses = []
     model.eval()
 
@@ -19,6 +19,8 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
     
     valid_loss = np.mean(losses)  # float
     valid_dice, valid_jaccard = metrics.get() # float
+
+    scheduler.step()
 
     print('    Valid loss: {:.5f}, Jaccard: {:.5f}, Dice: {:.5f}'.format(valid_loss, valid_jaccard, valid_dice))
 

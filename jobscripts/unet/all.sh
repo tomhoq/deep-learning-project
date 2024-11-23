@@ -34,16 +34,19 @@
 
 
 
-# MODEL=unet
+MODEL=unet
 # MODEL=unet_resnet34
-MODEL=unet34
+# MODEL=unet34
 
-# LOSS=bce
+LOSS=bce
 # LOSS=dice
 # LOSS=dice_no_bce
 # LOSS=jaccard
 # LOSS=jaccard2
-LOSS=mixed
+# LOSS=mixed
+
+
+
 
 REPO=${HOME}/deep-learning-project
 
