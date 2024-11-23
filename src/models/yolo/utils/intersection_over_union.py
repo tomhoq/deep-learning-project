@@ -3,21 +3,7 @@ import torch
 from torch import Tensor
 
 
-def intersection_over_union(boxes_preds: Tensor, boxes_labels: Tensor, box_format: Literal['midpoint', 'corners'] = 'midpoint'):
-    """
-    Calculates intersection over union
-    
-    Parameters:
-        boxes_preds (tensor): Predictions of Bounding Boxes (BATCH_SIZE, 4)
-        boxes_labels (tensor): Correct labels of Bounding Boxes (BATCH_SIZE, 4)
-        box_format (str): midpoint/corners, if boxes are (x,y,w,h) or (x1,y1,x2,y2) respectively.
-    
-    Returns:
-        tensor: Intersection over union for all examples
-    """
-    # boxes_preds shape is (N, 4) where N is the number of bboxes
-    # boxes_labels shape is (n, 4)
-    
+def get_intersection_and_areas(boxes_preds: Tensor, boxes_labels: Tensor, box_format: Literal['midpoint', 'corners'] = 'midpoint'):
     # Calculates the coordinates of the corners of the boxes
     # (e.g. bottom left x coord = x - w/2, since x is w.r.t the center of the box)
     if box_format == 'midpoint':
@@ -51,6 +37,25 @@ def intersection_over_union(boxes_preds: Tensor, boxes_labels: Tensor, box_forma
     
     box1_area = abs((box1_x2 - box1_x1) * (box1_y2 - box1_y1))
     box2_area = abs((box2_x2 - box2_x1) * (box2_y2 - box2_y1))
+
+    return intersection, box1_area, box2_area
+
+
+def intersection_over_union(boxes_preds: Tensor, boxes_labels: Tensor, box_format: Literal['midpoint', 'corners'] = 'midpoint'):
+    """
+    Calculates intersection over union
     
+    Parameters:
+        boxes_preds (tensor): Predictions of Bounding Boxes (BATCH_SIZE, 4)
+        boxes_labels (tensor): Correct labels of Bounding Boxes (BATCH_SIZE, 4)
+        box_format (str): midpoint/corners, if boxes are (x,y,w,h) or (x1,y1,x2,y2) respectively.
+    
+    Returns:
+        tensor: Intersection over union for all examples
+    """
+    # boxes_preds shape is (N, 4) where N is the number of bboxes
+    # boxes_labels shape is (n, 4)
+    
+    intersection, box1_area, box2_area = get_intersection_and_areas(boxes_preds, boxes_labels, box_format)
     return intersection / (box1_area + box2_area - intersection + 1e-6)
 
