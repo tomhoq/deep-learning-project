@@ -78,7 +78,8 @@ def train(
     
     model = model.to(device)
 
-    print(f"[*] Training options: lr={lr}, train_batch_size={train_batch_size}, valid_batch_size={valid_batch_size}, n_epochs={n_epochs}\n")
+    is_sched = 'yes' if scheduler is not None else 'no'
+    print(f"[*] Training options: lr={lr}, scheduler={is_sched}, train_batch_size={train_batch_size}, valid_batch_size={valid_batch_size}, n_epochs={n_epochs}\n")
 
     for epoch in range(epoch, n_epochs + 1):
 

@@ -31,7 +31,7 @@ train_dataset, val_dataset = get_yolo_train_val_datasets()
 
 BATCH_SIZE = 64
 LR = 2e-5
-N_EPOCHS = 20
+N_EPOCHS = 100
 
 model = get_model("yolo")
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)

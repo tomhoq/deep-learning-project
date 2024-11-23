@@ -77,9 +77,11 @@ for i in range(num_of_outputs):
     plt.figure(figsize = (15,15))
 
     images, gt = next(loader_iter)
+    out = model(images.to(device))
+
+    out = out.data.cpu()
     gt = gt.data.cpu()
     images = images.data.cpu()
-    out = model(images).data.cpu()
 
     batch_size = images.shape[0]
     true_bboxes = cellboxes_to_boxes(gt, S, C)

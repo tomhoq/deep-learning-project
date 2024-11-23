@@ -3,18 +3,16 @@ from sys import argv
 from os import path
 import matplotlib.pyplot as plt
 import torch
-from models.yolo.dataset import get_yolo_train_val_datasets
-from train_yolo import Compose
-from utils.dataset import AirbusDataset, get_dataframes, get_transforms
+from utils.dataset import AirbusDataset, get_dataframes
 from utils.get_model import get_model
 from utils.helpers import compare_model_outputs_with_ground_truths
-import torchvision.transforms as transforms
 
 
 ########## Arguments ##########
 # Check arguments
 if len(argv) != 3 and len(argv) != 4:
-    raise ValueError("Expected two or three arguments. Usage: python evaluate.py <model> <out_path> <num_of_outputs = 1>.\n<model> = 'unet' | 'yolo'")
+    raise ValueError("Expected two or three arguments. Usage: python evaluate.py <model> <out_path> <num_of_outputs = 1>")
+
 
 model_name = argv[1]
 out_path = argv[2]
