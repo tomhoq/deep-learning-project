@@ -65,7 +65,7 @@ if [[ ! -d ${OUT}/evaluation ]]; then
     mkdir ${OUT}/evaluation
 fi
 
-python3 ${REPO}/src/evaluate.py ${MODEL} ${OUT} 5
+python3 ${REPO}/src/evaluate_unet.py ${MODEL} ${OUT} 5
 
 
 ##### SUBMISSION #####

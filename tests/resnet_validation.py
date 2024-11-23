@@ -2,7 +2,6 @@ from pathlib import Path
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
-
 import torch
 from models.resnet34.resnet34 import get_resnet34
 from models.resnet34.dataset import AirbusDataset as ResnetDataset

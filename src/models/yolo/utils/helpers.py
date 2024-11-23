@@ -1,5 +1,6 @@
+from typing import Literal
 import torch
-from models.yolo.utils import non_max_suppression
+from models.yolo.utils.non_max_suppression import non_max_suppression
 
 
 def get_bboxes(
@@ -7,7 +8,9 @@ def get_bboxes(
     model,
     iou_threshold,
     threshold,
-    box_format="midpoint",
+    S,
+    C,
+    box_format: Literal['midpoint', 'corners'] = 'midpoint',
     device="cuda",
     loss_function = None
 ):
@@ -47,8 +50,8 @@ def get_bboxes(
             valid_loss += loss * loader.batch_size
 
         batch_size = x.shape[0]
-        true_bboxes = cellboxes_to_boxes(labels)
-        bboxes = cellboxes_to_boxes(predictions)
+        true_bboxes = cellboxes_to_boxes(labels, S, C)
+        bboxes = cellboxes_to_boxes(predictions, S, C)
 
         for idx in range(batch_size):
             nms_boxes = non_max_suppression(
@@ -57,10 +60,6 @@ def get_bboxes(
                 threshold=threshold,
                 box_format=box_format,
             )
-
-            #if batch_idx == 0 and idx == 0:
-            #    plot_image(x[idx].permute(1,2,0).to("cpu"), nms_boxes)
-            #    print(nms_boxes)
 
             for nms_box in nms_boxes:
                 all_pred_boxes.append([train_idx] + nms_box)
@@ -81,7 +80,7 @@ def get_bboxes(
         return all_pred_boxes, all_true_boxes
 
 
-def convert_cellboxes(predictions, S=7, C=3):
+def convert_cellboxes(predictions, S, C):
     """
     Converts bounding boxes output from Yolo with
     an image split size of S into entire image ratios
@@ -118,7 +117,7 @@ def convert_cellboxes(predictions, S=7, C=3):
     return converted_preds
 
 
-def cellboxes_to_boxes(out, S=7):
+def cellboxes_to_boxes(out, S, C):
     """
     Converts raw output from the model into bounding boxes.
 
@@ -129,7 +128,7 @@ def cellboxes_to_boxes(out, S=7):
     Returns:
         all_bboxes (List): A list of lists containing bounding box information for each example.
     """
-    converted_pred = convert_cellboxes(out).reshape(out.shape[0], S * S, -1)
+    converted_pred = convert_cellboxes(out, S, C).reshape(out.shape[0], S * S, -1)
     converted_pred[..., 0] = converted_pred[..., 0].long()
     all_bboxes = []
 

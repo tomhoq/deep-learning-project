@@ -1,7 +1,7 @@
 from collections import Counter
 from typing import Literal
 import torch
-from models.yolo.utils import intersection_over_union
+from models.yolo.utils.intersection_over_union import intersection_over_union
 
 
 """

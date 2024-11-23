@@ -1,6 +1,6 @@
 from torch import nn
 import torch
-from models.yolo.utils import intersection_over_union
+from models.yolo.utils.intersection_over_union import intersection_over_union
 
 
 class YoloLoss(nn.Module):
@@ -9,7 +9,7 @@ class YoloLoss(nn.Module):
     """
 
     def __init__(self, S=7, B=2, C=1):
-        super(YoloLoss, self).__init__()
+        super().__init__()
         self.mse = nn.MSELoss(reduction="sum")
 
         """

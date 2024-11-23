@@ -3,23 +3,22 @@ from sys import argv
 from os import path
 import matplotlib.pyplot as plt
 import torch
-from models.unet.src.unet import UNet
-from utils.dataset import AirbusDataset, get_dataframes, get_transforms
+from models.yolo.dataset import get_yolo_train_val_datasets
+from models.yolo.utils.helpers import cellboxes_to_boxes
+from models.yolo.utils.non_max_suppression import non_max_suppression
 from utils.get_model import get_model
 from utils.helpers import compare_model_outputs_with_ground_truths
+import torchvision.transforms as transforms
+import cv2
 
 
 ########## Arguments ##########
 # Check arguments
-if len(argv) != 3 and len(argv) != 4:
-    raise ValueError("Expected two or three arguments. Usage: python evaluate.py <model> <out_path> <num_of_outputs = 1>.\n<model> = 'unet' | 'yolo'")
+if len(argv) != 3:
+    raise ValueError("Expected two or three arguments. Usage: python evaluate.py <out_path> <num_of_outputs>")
 
-model_name = argv[1]
-out_path = argv[2]
-
-num_of_outputs = 1
-if len(argv) == 4:
-    num_of_outputs = int(argv[3])
+out_path = argv[1]
+num_of_outputs = int(argv[2])
 
 model = get_model(model_name)
 
@@ -64,23 +63,51 @@ model.load_state_dict(state)
 model = model.to(device)
 model.eval()
 
+
 # Load data
-train_df, valid_df = get_dataframes()
-train_transform, val_transform = get_transforms()
-val_dataset = AirbusDataset(valid_df, transform=val_transform, mode='validation')
+_, val_dataset = get_yolo_train_val_datasets()
+
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=8, shuffle=True, num_workers=0)
 loader_iter = iter(val_loader)
 
+
 # Display some images from loader
 for i in range(num_of_outputs):
+    plt.figure(figsize = (15,15))
+
     images, gt = next(loader_iter)
     gt = gt.data.cpu()
-    images = images.to(device)
-    out = model(images)
-    out = ((out > 0).float()) * 255
     images = images.data.cpu()
-    out = out.data.cpu()
+    out = model(images).data.cpu()
 
-    compare_model_outputs_with_ground_truths(images, gt, out)
+    batch_size = images.shape[0]
+    true_bboxes = cellboxes_to_boxes(gt)
+    bboxes = cellboxes_to_boxes(out)
+
+    for idx in range(batch_size):
+        boxes = non_max_suppression(
+            bboxes[idx],
+            iou_threshold=0.5, 
+            threshold=0.4,
+            box_format = 'midpoint',
+        )
+
+        image = images[idx]
+
+        for items in boxes:
+            Xmin  = int((items[0]-items[3]/2)*768)
+            Ymin  = int((items[1]-items[2]/2)*768)
+            Xmax  = int((items[0]+items[3]/2)*768)
+            Ymax  = int((items[1]+items[2]/2)*768)
+            cv2.rectangle(image,
+                          (Xmin,Ymin),
+                          (Xmax,Ymax),
+                          (255,0,0),
+                          thickness = 2)
+
+        plt.subplot(4,4,i+1)
+        plt.imshow(image)
+        plt.title("No of ships = {}".format(i))
+
     plt.savefig(path.join(out_path, 'evaluation', f"model_vs_ground_truth_{i + 1}.png"))
 #####################################

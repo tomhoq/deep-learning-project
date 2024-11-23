@@ -5,10 +5,26 @@ from models.yolo.dataframe import get_dataframe
 from utils.helpers import PATHS
 import os
 from PIL import Image
+import torchvision.transforms as transforms
+
+
+class Compose(object):
+    def __init__(self, transforms):
+        self.transforms = transforms
+
+    def __call__(self, img, bboxes):
+        for t in self.transforms:
+            img, bboxes = t(img), bboxes
+
+        return img, bboxes
+
 
 
 
 def get_yolo_train_val_datasets(transform = None):
+    if transform is None:
+        transform = Compose([transforms.Resize((448, 448)), transforms.ToTensor()])
+
     df = get_dataframe()
     train_ds = AirbusYOLODataset(df['train'], transform = transform)
     valid_ds = AirbusYOLODataset(df['validation'], transform = transform)
@@ -34,6 +50,9 @@ class AirbusYOLODataset(torch.utils.data.Dataset):
         """
         Convert bboxes to cells (if this image has to ships bboxes = [] => label_matrix will stay zeroed)
         """
+
+        # We only have 1 class label (ship)
+        class_label = 0
 
         label_matrix = torch.zeros((self.S, self.S, self.C + 5 * self.B))
         for box in bboxes:
@@ -68,19 +87,15 @@ class AirbusYOLODataset(torch.utils.data.Dataset):
 
                 # Box coordinates
                 box_coordinates = torch.tensor([x_cell, y_cell, width_cell, height_cell])
-
-                label_matrix[i, j, 4:8] = box_coordinates
+                label_matrix[i, j, class_label+2:class_label+6] = box_coordinates
 
                 # Set one hot encoding for class_label
-                label_matrix[i, j, 0] = 1
+                label_matrix[i, j, class_label] = 1
 
         return label_matrix
 
 
     def __getitem__(self, index):
-        # We only have 1 class label (ship)
-        class_label = 0
-
         # Get ImageId
         img_id = self.df.iloc[index]['ImageId']
 

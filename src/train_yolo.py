@@ -1,14 +1,10 @@
 from models.yolo.dataset import get_yolo_train_val_datasets
 from models.yolo.loss import YoloLoss
 from utils.get_model import get_model
-from utils.losses import BCEDiceWithLogitsLoss, BCEJaccardWithLogitsLoss, DiceLoss, MixedLoss
 from utils.train import train
-from models.unet.src.unet import UNet
-from utils.dataset import AirbusDataset
 import torch
 from sys import argv
 from models.yolo.validation import validation as yolo_validation 
-import torchvision.transforms as transforms
 
 
 # Check arguments
@@ -26,20 +22,8 @@ print('[+] Using YoloLoss')
 
 
 
-##### DATASET #####
-class Compose(object):
-    def __init__(self, transforms):
-        self.transforms = transforms
 
-    def __call__(self, img, bboxes):
-        for t in self.transforms:
-            img, bboxes = t(img), bboxes
-
-        return img, bboxes
-
-
-transform = Compose([transforms.Resize((448, 448)), transforms.ToTensor()])
-train_dataset, val_dataset = get_yolo_train_val_datasets(transform)
+train_dataset, val_dataset = get_yolo_train_val_datasets()
 
 
 
