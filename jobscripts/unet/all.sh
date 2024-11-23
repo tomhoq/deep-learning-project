@@ -57,7 +57,7 @@ source ${REPO}/.venv/bin/activate
 
 
 ##### TRAINING #####
-python3 ${REPO}/src/train.py ${MODEL} ${LOSS} ${OUT}
+python3 ${REPO}/src/train_unet.py ${MODEL} ${LOSS} ${OUT}
 
 
 ##### EVALUATION #####

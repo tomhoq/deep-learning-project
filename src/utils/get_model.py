@@ -4,7 +4,7 @@ from torch.nn import Module
 
 
 
-def get_model(model_name: Literal['unet', 'unet_resnet34']) -> Module:
+def get_model(model_name: Literal['unet', 'unet_resnet34', 'unet34', 'yolo']) -> Module:
     #---------------------------------------- 
     if model_name == 'unet':
         from models.unet.src.unet import UNet

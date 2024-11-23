@@ -35,16 +35,7 @@
 
 
 MODEL=yolo
-
-LOSS=bce
-# LOSS=dice
-# LOSS=dice_no_bce
-# LOSS=jaccard
-# LOSS=jaccard2
-# LOSS=mixed
-
 REPO=${HOME}/deep-learning-project
-
 
 OUT=${REPO}/job_out/${MODEL}/${LSB_JOBID}
 mkdir -p ${OUT}
@@ -55,24 +46,4 @@ source ${REPO}/.venv/bin/activate
 
 
 ##### TRAINING #####
-python3 ${REPO}/src/train.py ${MODEL} ${LOSS} ${OUT}
-
-
-##### EVALUATION #####
-if [[ ! -d ${OUT}/evaluation ]]; then
-    mkdir ${OUT}/evaluation
-fi
-
-python3 ${REPO}/src/evaluate.py ${MODEL} ${OUT} 5
-
-
-##### SUBMISSION #####
-python3 ${REPO}/src/make_submission.py ${MODEL} ${OUT}
-
-printf "\n[*] Submitting to Kaggle\n"
-kaggle competitions submit -c airbus-ship-detection -f ${OUT}/submission.csv -m "Automatic submission ${LSB_JOBID} - With ${LOSS}"
-
-
-#### FINISHING ####
-# mv ${REPO}/job_out/${MODEL}/all_${LSB_JOBID}* ${OUT}
-
+python3 ${REPO}/src/train_yolo.py ${OUT}

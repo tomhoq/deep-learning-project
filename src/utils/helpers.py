@@ -13,6 +13,8 @@ PATHS = {
 }
 
 
+#################### RUN LENGTH ENCODING #################### 
+
 def rle_decode(mask_rle, shape=(768, 768)):
     '''
     From https://www.kaggle.com/paulorzp/run-length-encode-and-decode    
@@ -66,6 +68,43 @@ def masks_as_image(rle_masks):
 
     return np.expand_dims(all_masks, -1)
 
+
+def rle2bbox(rle: str, shape = (768,768)):
+    """
+    Converts RLE to bound-box coordinates [xc, yc, h, w]
+
+    :param rle: The run length encoding
+    :param shape: The shape of the image
+    """
+
+    a = np.fromiter(rle.split(), dtype=np.uint)
+    a = a.reshape((-1, 2))
+    a[:,0] -= 1
+    
+    y0 = a[:,0] % shape[0]
+    y1 = y0 + a[:,1]
+    if np.any(y1 > shape[0]):
+        y0 = 0
+        y1 = shape[0]
+    else:
+        y0 = np.min(y0)
+        y1 = np.max(y1)
+    
+    x0 = a[:,0] // shape[0]
+    x1 = (a[:,0] + a[:,1]) // shape[0]
+    x0 = np.min(x0)
+    x1 = np.max(x1)
+    
+    if x1 > shape[1]:
+        raise ValueError("invalid RLE or image dimensions: x1=%d > shape[1]=%d" % (
+            x1, shape[1]
+        ))
+
+    xc = (x0+x1)/(2*768)
+    yc = (y0+y1)/(2*768)
+    w = np.abs(x1-x0)/768
+    h = np.abs(y1-y0)/768
+    return [xc, yc, h, w]
 
 
 #################### PLOTTING OR VIEWING IMAGES #################### 
@@ -153,3 +192,4 @@ def compare_model_outputs_with_ground_truths(images, gt_masks, out_masks):
         axes[i, 1].axis('off')
     
     plt.tight_layout(rect=[0, 0, 1, 0.995])
+

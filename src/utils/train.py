@@ -21,7 +21,21 @@ def write_event(log, step: int, **data):
     log.flush()
 
 
-def train(model: nn.Module, train_dataset, val_dataset, loss_function, validation_function, lr, optimizer, out_path, train_batch_size, valid_batch_size, n_epochs, num_workers_per_gpu = 2):
+def train(
+        model: nn.Module, 
+        train_dataset, 
+        val_dataset, 
+        loss_function, 
+        validation_function, 
+        lr, 
+        optimizer, 
+        out_path, 
+        train_batch_size, 
+        valid_batch_size, 
+        n_epochs, 
+        num_workers_per_gpu = 2,
+        scheduler = None
+    ):
     """
     Trains the given nn model. It can also stop and restart training from a file.
     Everything is logged into files.
@@ -108,7 +122,7 @@ def train(model: nn.Module, train_dataset, val_dataset, loss_function, validatio
             save(epoch + 1)
             
             # Validation and logging
-            comb_loss_metrics = validation_function(model, loss_function, valid_loader, device)
+            comb_loss_metrics = validation_function(model, loss_function, valid_loader, device, scheduler)
             write_event(log, step, **comb_loss_metrics)
 
         # Save model if training is interrupted

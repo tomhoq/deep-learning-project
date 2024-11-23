@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 
 @torch.no_grad()
-def validation(model: torch.nn.Module, loss_function, valid_loader, device):
+def validation(model: torch.nn.Module, loss_function, valid_loader, device, scheduler = None):
     valid_loss = 0
     num_correct = 0
     tot = 0 
