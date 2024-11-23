@@ -7,8 +7,6 @@ from models.yolo.dataset import get_yolo_train_val_datasets
 from models.yolo.utils.helpers import cellboxes_to_boxes
 from models.yolo.utils.non_max_suppression import non_max_suppression
 from utils.get_model import get_model
-from utils.helpers import compare_model_outputs_with_ground_truths
-import torchvision.transforms as transforms
 import cv2
 
 
@@ -19,6 +17,7 @@ if len(argv) != 3:
 
 out_path = argv[1]
 num_of_outputs = int(argv[2])
+model_name = 'yolo'
 
 model = get_model(model_name)
 
@@ -70,6 +69,8 @@ _, val_dataset = get_yolo_train_val_datasets()
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=8, shuffle=True, num_workers=0)
 loader_iter = iter(val_loader)
 
+S = 7
+C = 1
 
 # Display some images from loader
 for i in range(num_of_outputs):
@@ -81,8 +82,8 @@ for i in range(num_of_outputs):
     out = model(images).data.cpu()
 
     batch_size = images.shape[0]
-    true_bboxes = cellboxes_to_boxes(gt)
-    bboxes = cellboxes_to_boxes(out)
+    true_bboxes = cellboxes_to_boxes(gt, S, C)
+    bboxes = cellboxes_to_boxes(out, S, C)
 
     for idx in range(batch_size):
         boxes = non_max_suppression(
