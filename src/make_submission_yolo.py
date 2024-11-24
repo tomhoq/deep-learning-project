@@ -6,10 +6,13 @@ import torch
 import pandas as pd
 from tqdm import tqdm
 from models.unet.src.utils.dataset import AirbusUnetDataset
+from models.yolo.utils.helpers import cellboxes_to_boxes
+from utils.data_augmentation import CenterCrop, DualCompose
 from utils.get_model import get_model
 from utils.helpers import PATHS, multi_rle_encode
 import torch.nn.functional as F
 from PIL import Image, ImageDraw
+import torchvision.transforms as transforms
 
 
 
@@ -47,8 +50,9 @@ model.eval()
 
 ##### DATA LOADER #####
 test_df = pd.DataFrame({ 'ImageId': list_img_test, 'EncodedPixels': None })
+t = DualCompose([CenterCrop((448,448,3))])
 # Keep the unet dataset because we're just using as a facade, the 'test' mode deoesn't do much
-ds = AirbusUnetDataset(test_df, mode='test')
+ds = AirbusUnetDataset(test_df, mode='test', transform=t)
 loader = torch.utils.data.DataLoader(dataset=ds, shuffle=False, batch_size=2, num_workers=0)
     
 
@@ -57,23 +61,39 @@ loader = torch.utils.data.DataLoader(dataset=ds, shuffle=False, batch_size=2, nu
 out_pred_rows = []
 
 def draw_bboxes_on_mask(boxes, image_size):
-    """Draw bounding boxes on a binary mask."""
+    """
+    Draw bounding boxes on a binary mask.
+    """
     mask = Image.new('1', image_size, 0)  # Binary mask
     draw = ImageDraw.Draw(mask)
+
     for box in boxes:
-        x1, y1, x2, y2 = box.tolist()
+        x, y, w, h = box.tolist()
+
+        x1  = int((x - w/2) * image_size[0])
+        y1  = int((y - h/2) * image_size[0])
+        x2  = int((x + w/2) * image_size[0])
+        y2  = int((y + h/2) * image_size[0])
+
         draw.rectangle([x1, y1, x2, y2], outline=1, fill=1)
+
     return np.array(mask, dtype=np.uint8)  # Convert to numpy array
+
+
+S = 7
+C = 1
 
 
 # When mode='test' the dataset returns img, label where label=img_file_name
 for batch_num, (images, images_names) in enumerate(tqdm(loader, desc='Test', file=stdout)):
     outputs = model(images.to(device))  # YOLO outputs bounding boxes and scores
+    bboxes = cellboxes_to_boxes(outputs, S, C)
 
     for i, image_name in enumerate(images_names):
-        output = outputs[i]  # Extract output for a single image
-        boxes = output[..., :4]  # Bounding boxes [x1, y1, x2, y2]
-        scores = output[..., 4]  # Objectness scores
+        # out = [class_pred, prob_score, x1, y1, x2, y2]
+        curr_bboxes = torch.tensor(bboxes[i])  # Extract output for a single image
+        boxes = curr_bboxes[..., 2:6]  # Bounding boxes [x1, y1, x2, y2]
+        scores = curr_bboxes[..., 1]  # Objectness scores
 
         # Filter predictions with a confidence threshold
         confidence_threshold = 0.5
@@ -89,10 +109,11 @@ for batch_num, (images, images_names) in enumerate(tqdm(loader, desc='Test', fil
             
             # Append each RLE to the submission
             for rle in rle_encodings:
-                out_pred_rows.append({'ImageId': image_name, 'EncodedPixels': rle})
+                out_pred_rows.append({ 'ImageId': image_name, 'EncodedPixels': rle })
         else:
             # If no detections, append a blank RLE
-            out_pred_rows.append({'ImageId': image_name, 'EncodedPixels': None})
+            out_pred_rows.append({ 'ImageId': image_name, 'EncodedPixels': None })
+
 
 
 ##### MAKE CSV #####
@@ -100,4 +121,4 @@ submission_df = pd.DataFrame(out_pred_rows)[['ImageId', 'EncodedPixels']]
 res_path = os.path.join(out_path, 'submission.csv')
 submission_df.to_csv(res_path, index=False)
 
-print("[+] Done. Created submission.csv")
+print("\n[+] Done. Created submission.csv")

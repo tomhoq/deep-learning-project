@@ -55,7 +55,7 @@ python3 ${REPO}/src/evaluate_yolo.py ${OUT} 5
 
 
 # ##### SUBMISSION #####
-# python3 ${REPO}/src/make_submission_yolo.py ${OUT}
+python3 ${REPO}/src/make_submission_yolo.py ${OUT}
 
-# printf "\n[*] Submitting to Kaggle\n"
-# kaggle competitions submit -c airbus-ship-detection -f ${OUT}/submission.csv -m "Automatic submission YOLO ${LAST_JOBID} - With ${LOSS}"
+printf "\n[*] Submitting to Kaggle\n"
+kaggle competitions submit -c airbus-ship-detection -f ${OUT}/submission.csv -m "Automatic submission YOLO - ${LAST_JOBID}"

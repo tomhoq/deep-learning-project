@@ -54,15 +54,15 @@ plt.savefig(path.join(out_path, 'evaluation', 'loss.png'))
 def draw_bboxes_on_image(image, boxes):
     for box in boxes:
         box = box[2:]
-        Xmin  = int((box[0]-box[3]/2)*768)
-        Ymin  = int((box[1]-box[2]/2)*768)
-        Xmax  = int((box[0]+box[3]/2)*768)
-        Ymax  = int((box[1]+box[2]/2)*768)
-        cv2.rectangle(image,
-                        (Xmin,Ymin),
-                        (Xmax,Ymax),
-                        (255,0,0),
-                        thickness = 2)
+        x,y,w,h = box[0], box[1], box[2], box[3]
+        img_size = image.shape[0]
+
+        Xmin  = int((x - w/2) * img_size)
+        Ymin  = int((y - h/2) * img_size)
+        Xmax  = int((x + w/2) * img_size)
+        Ymax  = int((y + h/2) * img_size)
+
+        cv2.rectangle(image, (Xmin,Ymin), (Xmax,Ymax), (255,0,0), thickness = 2)
 
 
 
@@ -141,3 +141,5 @@ for i in range(num_of_outputs):
     plt.savefig(path.join(out_path, 'evaluation', f"model_vs_ground_truth_{i + 1}.png"))
     print(f"[+] Image {i + 1} saved")
 #####################################
+
+print(f"[+] Evaluation completed")
