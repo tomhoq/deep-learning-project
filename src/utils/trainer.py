@@ -106,8 +106,6 @@ class Trainer():
             )
 
             try:
-                mean_loss = 0
-
                 for i, (inputs, targets) in enumerate(self.train_loader):
                     inputs, targets = inputs.to(self.device), targets.to(self.device)
 
@@ -124,8 +122,8 @@ class Trainer():
                     ### LOGGING ###
                     self._log_training(i, tq, losses)
 
-                # Logging (conclude logging for this epoch)
-                self._log_event(loss=mean_loss)
+                # Log mean loss (conclude logging for this epoch)
+                self._log_event(loss=np.mean(losses[-self.REPORT_EACH:]))
                 tq.close()
 
                 ### CHECKPOINT ###
@@ -170,6 +168,9 @@ class Trainer():
 
 
     def _plot_progress(self):
+        """
+        Plots (to file) the loss and validation loss
+        """
         log_file = path.join(self.out_path, 'train.log')
         logs = pd.read_json(log_file, lines=True)
 
@@ -200,16 +201,26 @@ class Trainer():
 
         # Use the 'epoch' values directly from the logs DataFrame
         ax2.set_xlim(ax1.get_xlim())  # Make sure the limits of the secondary x-axis match the first x-axis
-        ax2.set_xticks(logs.step[logs.epoch.notnull()])  # Set ticks based on the available epoch values
-        ax2.set_xticklabels(logs.epoch[logs.epoch.notnull()])  # Display the epoch values as tick labels
+        # Get the steps where 'epoch' changes
+        epoch_changes = logs[logs['epoch'].notnull()].drop_duplicates(subset='epoch', keep='first')
+
+        # Set ticks based on the steps where 'epoch' changes
+        ax2.set_xticks(epoch_changes.step)
+
+        # Set labels to show the 'epoch' values only at those points
+        ax2.set_xticklabels(epoch_changes.epoch)
+
         ax2.set_xlabel('Epoch')
 
         # Tight layout and saving the figure
-        plt.tight_layout()
+        plt.tight_layout() 
         plt.savefig(path.join(self.out_path, 'loss.png'))
 
 
     def _log_training(self, i, tq, losses):
+        """
+        Updates the progress bar (tqdm) and writes the new loss to train.log
+        """
         self.step += 1
         tq.update(self.train_batch_size)
 
@@ -221,6 +232,9 @@ class Trainer():
 
 
     def _save(self, ep):
+        """
+        Saves the model into a .pt file
+        """
         return torch.save({
             'model': self.model.state_dict(),
             'epoch': ep,
@@ -230,7 +244,7 @@ class Trainer():
 
     def _log_event(self, **data):
         """
-        Helper to log data into file
+        Helper to log data into file (writes **data to file in json format)
         """
         data['step'] = self.step
         data['epoch'] = self.epoch
