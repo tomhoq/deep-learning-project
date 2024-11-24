@@ -60,8 +60,8 @@ elif loss == 'mixed':
 
 BATCH_SIZE_TRAIN = 16
 BATCH_SIZE_VALID = 4
-LR = 1e-4
-N_EPOCHS = 3
+LR = 2e-5
+N_EPOCHS = 10
 
 model = get_model(model_argv)
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)

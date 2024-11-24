@@ -79,7 +79,6 @@ def get_bboxes(
         tq.update(loader.batch_size)
 
     tq.close()
-    print("")
 
     model.train()
 

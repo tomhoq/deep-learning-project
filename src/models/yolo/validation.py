@@ -20,7 +20,7 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
     )
     mean_avg_prec = mean_average_precision(pred_boxes, target_boxes, iou_threshold=0.5, box_format="midpoint")
 
-    print('    Valid loss: {:.5f}, mAP: {:.5f}'.format(valid_loss, mean_avg_prec))
+    print('    Valid loss: {:.5f}, mAP: {:.5f}\n'.format(valid_loss, mean_avg_prec))
 
     scheduler.step(mean_avg_prec)
 
