@@ -87,8 +87,8 @@ def train(
 
         # For logging
         random.seed()
-        tq = tqdm(total=len(train_loader) *  train_batch_size, file=stdout)
-        tq.set_description('Epoch {}'.format(epoch))
+        tq = tqdm(total=len(train_loader) *  train_batch_size, desc=f"Epoch {epoch}", file=stdout)
+
         losses = []
 
         try:

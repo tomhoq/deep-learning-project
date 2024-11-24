@@ -1,6 +1,9 @@
 from typing import Literal
 import torch
+from tqdm import tqdm
 from models.yolo.utils.non_max_suppression import non_max_suppression
+from sys import stdout
+
 
 
 def get_bboxes(
@@ -38,6 +41,8 @@ def get_bboxes(
     model.eval()
     train_idx = 0
 
+    tq = tqdm(total=len(loader) * loader.batch_size, desc='Validation', file=stdout)
+
     for _, (x, labels) in enumerate(loader):
         x = x.to(device)
         labels = labels.to(device)
@@ -70,6 +75,11 @@ def get_bboxes(
                     all_true_boxes.append([train_idx] + box)
 
             train_idx += 1
+        
+        tq.update(loader.batch_size)
+
+    tq.close()
+    print("")
 
     model.train()
 

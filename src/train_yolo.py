@@ -1,5 +1,7 @@
 from models.yolo.dataset import get_yolo_train_val_datasets
 from models.yolo.loss import YoloLoss
+from models.yolo.utils.dice import match_and_calculate_dice
+from models.yolo.utils.helpers import get_bboxes
 from utils.get_model import get_model
 from utils.train import train
 import torch
@@ -51,3 +53,26 @@ train(
     valid_batch_size = BATCH_SIZE,
     out_path = out_path,
 )
+
+
+
+##### Calculate DICE #####
+
+valid_loader = torch.utils.data.DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2*torch.cuda.device_count(), pin_memory=torch.cuda.is_available())
+pred_boxes, target_boxes, valid_loss = get_bboxes(
+    valid_loader, 
+    model, 
+    iou_threshold=0.5,
+    threshold=0.4,
+    S = 7,
+    C = 1,
+    device = "cuda", 
+    loss_function = loss_function
+)
+# Take only [x1,y1,x2,y2] from [train_idx, class_pred, prob_score, x1, y1, x2, y2]
+pred_bboxes = torch.Tensor(pred_boxes)[..., 3:7]
+target_bboxes = torch.Tensor(target_boxes)[..., 3:7]
+
+dice_score = match_and_calculate_dice(pred_bboxes, target_bboxes)
+
+print("\n[+] DICE score: {:.5f}".format(dice_score))

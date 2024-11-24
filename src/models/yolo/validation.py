@@ -20,23 +20,11 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
     )
     mean_avg_prec = mean_average_precision(pred_boxes, target_boxes, iou_threshold=0.5, box_format="midpoint")
 
-    try:
-        # Take only [x1,y1,x2,y2] from [train_idx, class_pred, prob_score, x1, y1, x2, y2]
-        pred_bboxes = torch.Tensor(pred_boxes)[..., 3:7]
-        target_bboxes = torch.Tensor(target_boxes)[..., 3:7]
-
-        dice_score = match_and_calculate_dice(pred_bboxes, target_bboxes)
-    except Exception as e:
-        print(e)
-        dice_score = torch.tensor(-1)
-
-
-    print('    Valid loss: {:.5f}, mAP: {:.5f}, DICE: {:.5f}'.format(valid_loss, mean_avg_prec, dice_score))
+    print('    Valid loss: {:.5f}, mAP: {:.5f}'.format(valid_loss, mean_avg_prec))
 
     scheduler.step(mean_avg_prec)
 
     return {
         'valid_loss': valid_loss.item(), 
         'mAP': mean_avg_prec.item(),
-        'dice': dice_score,
     }
