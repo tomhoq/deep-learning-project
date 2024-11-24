@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from sys import argv
 from os import path
@@ -13,7 +14,7 @@ import cv2
 ########## Arguments ##########
 # Check arguments
 if len(argv) != 3:
-    raise ValueError("Expected two or three arguments. Usage: python evaluate.py <out_path> <num_of_outputs>")
+    raise ValueError("Expected two arguments. Usage: python evaluate.py <out_path> <num_of_outputs>")
 
 out_path = argv[1]
 num_of_outputs = int(argv[2])
@@ -21,7 +22,7 @@ model_name = 'yolo'
 
 model = get_model(model_name)
 
-print(f"\n[*] Evaluating {model_name} model")
+print(f"\n[*] Evaluating {model_name} (running on {'GPU' if torch.cuda.is_available() else 'CPU'})")
 
 
 ########## Plot losses ##########
@@ -49,11 +50,26 @@ plt.savefig(path.join(out_path, 'evaluation', 'loss.png'))
 #####################################
 
 
+
+def draw_bboxes_on_image(image, boxes):
+    for box in boxes:
+        box = box[2:]
+        Xmin  = int((box[0]-box[3]/2)*768)
+        Ymin  = int((box[1]-box[2]/2)*768)
+        Xmax  = int((box[0]+box[3]/2)*768)
+        Ymax  = int((box[1]+box[2]/2)*768)
+        cv2.rectangle(image,
+                        (Xmin,Ymin),
+                        (Xmax,Ymax),
+                        (255,0,0),
+                        thickness = 2)
+
+
+
 ########## Model inference ##########
 model_path = path.join(out_path, 'model.pt')
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"[!] RUNNING ON {'GPU' if torch.cuda.is_available() else 'CPU'}\n")
 
 # Load model
 state = torch.load(str(model_path), map_location=device, weights_only=False)
@@ -85,32 +101,43 @@ for i in range(num_of_outputs):
 
     batch_size = images.shape[0]
     true_bboxes = cellboxes_to_boxes(gt, S, C)
-    bboxes = cellboxes_to_boxes(out, S, C)
+    pred_bboxes = cellboxes_to_boxes(out, S, C)
+
+
+    _, axes = plt.subplots(batch_size, 2, figsize=(10, 5 * batch_size))
+    axes[0, 0].set_title("Model output", fontsize=24, pad=20)
+    axes[0, 1].set_title("Ground truth", fontsize=24, pad=20)
 
     for idx in range(batch_size):
-        boxes = non_max_suppression(
-            bboxes[idx],
+        pred_boxes = non_max_suppression(
+            pred_bboxes[idx],
             iou_threshold=0.5, 
             threshold=0.4,
             box_format = 'midpoint',
         )
+        true_boxes = true_bboxes[idx]
 
         image = images[idx]
+        image = image.permute(1, 2, 0).numpy()
+        image = (image * 255).astype(np.uint8) 
+        image = np.ascontiguousarray(image)
 
-        for items in boxes:
-            Xmin  = int((items[0]-items[3]/2)*768)
-            Ymin  = int((items[1]-items[2]/2)*768)
-            Xmax  = int((items[0]+items[3]/2)*768)
-            Ymax  = int((items[1]+items[2]/2)*768)
-            cv2.rectangle(image,
-                          (Xmin,Ymin),
-                          (Xmax,Ymax),
-                          (255,0,0),
-                          thickness = 2)
+        pred_image = image.copy()
+        true_image = image.copy()
 
-        plt.subplot(4,4,i+1)
-        plt.imshow(image)
-        plt.title("No of ships = {}".format(i))
+        draw_bboxes_on_image(pred_image, pred_boxes)
+        draw_bboxes_on_image(true_image, true_boxes)
 
+        # Plotting the model output in the left column
+        axes[idx, 0].imshow(pred_image)
+        axes[idx, 0].axis('off')
+        
+        # Plotting the ground truths in the right column
+        axes[idx, 1].imshow(true_image)
+        axes[idx, 1].axis('off')
+
+
+    plt.tight_layout(rect=[0, 0, 1, 0.995])
     plt.savefig(path.join(out_path, 'evaluation', f"model_vs_ground_truth_{i + 1}.png"))
+    print(f"[+] Image {i + 1} saved")
 #####################################

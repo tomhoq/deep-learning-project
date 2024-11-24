@@ -39,6 +39,21 @@ class YOLO(nn.Module):
         self.conv = self.builder.create_conv_layers()
         self.fc = self.builder.create_fully_connected_layers(S = 7, B = 2, C = num_classes)
 
+        self._initialize_weights()
+
+
+    @torch.no_grad()
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.xavier_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+            elif isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+
 
     def forward(self, x):
         x = self.conv(x)

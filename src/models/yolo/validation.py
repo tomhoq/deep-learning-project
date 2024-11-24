@@ -20,11 +20,14 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
     )
     mean_avg_prec = mean_average_precision(pred_boxes, target_boxes, iou_threshold=0.5, box_format="midpoint")
 
-    print('    Valid loss: {:.5f}, mAP: {:.5f}\n'.format(valid_loss, mean_avg_prec))
+    dice_score = match_and_calculate_dice(torch.tensor(pred_boxes), torch.tensor(target_boxes))
+
+    print('    Valid loss: {:.5f}, mAP: {:.5f}, DICE: {:.5f}\n'.format(valid_loss, mean_avg_prec, dice_score))
 
     scheduler.step(mean_avg_prec)
 
     return {
         'valid_loss': valid_loss.item(), 
         'mAP': mean_avg_prec.item(),
+        'dice': dice_score,
     }

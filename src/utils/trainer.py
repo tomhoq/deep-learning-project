@@ -143,7 +143,7 @@ class Trainer():
                 print('done.')
                 return
 
-        print("\n[+] Finished training")
+        print("[+] Finished training")
 
 
     #############################################################

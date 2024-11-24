@@ -49,7 +49,7 @@ module load python3/3.10.14
 source ${REPO}/.venv/bin/activate
 
 # Run submission
-python3 ${REPO}/src/make_submission.py ${MODEL} ${REPO}/job_out/${MODEL}/${OUT}
+python3 ${REPO}/src/make_submission_unet.py ${MODEL} ${REPO}/job_out/${MODEL}/${OUT}
 
 # Submit to Kaggle
 printf "\n[*] Submitting to Kaggle\n"

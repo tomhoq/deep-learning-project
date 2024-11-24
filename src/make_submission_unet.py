@@ -21,17 +21,15 @@ out_path = argv[2]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 list_img_test = os.listdir(PATHS['test'])
 
-print(f'''Making submission:
-    Model:   {model_name}
-    Device:  {device.type}
-    Samples: {len(list_img_test)}
+print(f'''[*] Making submission:
+        Model:   {model_name}
+        Device:  {device.type}
+        Samples: {len(list_img_test)}
 ''')
 
 
 ########## Load model ##########
 model_path = os.path.join(out_path, 'model.pt')
-
-print(f"RUNNING ON {'GPU' if torch.cuda.is_available() else 'CPU'}\n")
 
 # Load model
 model = get_model(model_name)
@@ -76,4 +74,4 @@ submission_df = pd.DataFrame(out_pred_rows)[['ImageId', 'EncodedPixels']]
 res_path = os.path.join(out_path, 'submission.csv')
 submission_df.to_csv(res_path, index=False)
 
-print("Done. Created submission.csv")
+print("[+] Done. Created submission.csv")

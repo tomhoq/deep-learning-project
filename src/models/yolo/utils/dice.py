@@ -24,8 +24,8 @@ def match_and_calculate_dice(pred_boxes: torch.Tensor, target_boxes: torch.Tenso
     Matches predicted boxes to target boxes and calculates the DICE score.
 
     Args:
-    - pred_boxes (Tensor): Predicted boxes, shape (N, 4).
-    - target_boxes (Tensor): Ground truth boxes, shape (M, 4).
+    - pred_boxes (Tensor): Predicted boxes, shape (N, 7), where columns are [train_idx, class_pred, prob_score, x1, y1, x2, y2].
+    - target_boxes (Tensor): Ground truth boxes, shape (M, 7), where columns are [train_idx, class_true, score, x1, y1, x2, y2].
     - box_format (str): "midpoint" or "corners".
     - threshold (float): Minimum DICE score to consider a valid match.
 
@@ -34,27 +34,40 @@ def match_and_calculate_dice(pred_boxes: torch.Tensor, target_boxes: torch.Tenso
     """
 
     if pred_boxes.shape[0] == 0 or target_boxes.shape[0] == 0:
-        # Handle edge cases where there are no predictions or targets
         return 0.0
 
-    tq = tqdm(total=len(pred_boxes) * len(target_boxes), desc='Calculating DICE score', file=stdout)
+    # Get unique train_idx values
+    train_indices = torch.unique(pred_boxes[:, 0])
 
-    # Compute DICE scores between all predictions and targets
-    dice_scores = []
-    for i, pred_box in enumerate(pred_boxes):
-        for j, target_box in enumerate(target_boxes):
-            score = dice(pred_box.unsqueeze(0), target_box.unsqueeze(0), box_format).item()
+    # Initialize list to store DICE scores
+    total_dice_scores = []
 
-            # Skip if score is 0 ?????
-            if score > 0:
-                dice_scores += [score]
+    tq = tqdm(total=len(train_indices), desc='Calculating DICE score', file=stdout)
 
+    for train_idx in train_indices:
+        # Filter boxes for the current train_idx
+        pred_group = pred_boxes[pred_boxes[:, 0] == train_idx][:, 3:]  # Extract [x1, y1, x2, y2]
+        target_group = target_boxes[target_boxes[:, 0] == train_idx][:, 3:]  # Extract [x1, y1, x2, y2]
+
+        if pred_group.shape[0] == 0 or target_group.shape[0] == 0:
             tq.update()
+            continue
+
+        # Perform pairwise DICE score computation (broadcasting)
+        pred_group = pred_group.unsqueeze(1)  # Shape (N, 1, 4)
+        target_group = target_group.unsqueeze(0)  # Shape (1, M, 4)
+        dice_scores = dice(pred_group, target_group, box_format)  # Shape (N, M)
+
+        # Filter matches with DICE scores above the threshold
+        valid_dice_scores = dice_scores[dice_scores > threshold]
+        total_dice_scores.extend(valid_dice_scores.tolist())
+
+        tq.update()
 
     tq.close()
 
-    if len(dice_scores) == 0:
-        return 0
+    # Compute mean DICE score
+    if len(total_dice_scores) == 0:
+        return 0.0
     else:
-        return np.mean(dice_scores)
-
+        return np.mean(total_dice_scores)

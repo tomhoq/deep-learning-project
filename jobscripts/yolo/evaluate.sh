@@ -5,7 +5,7 @@
 
 ### –- specify queue --
 #BSUB -q gpuv100
-##SUB -q gpua100
+##BSUB -q gpua100
 
 ### -- set the job Name --
 #BSUB -J 241268-yolo
@@ -27,8 +27,8 @@
 #BSUB -R "span[hosts=1]"
 
 ### -- Specify the output and error file. %J is the job-id --
-#BSUB -o job_out/yolo_all_%J.out
-#BSUB -e job_out/yolo_all_%J.err
+#BSUB -o job_out/yolo_evaluation_%J.out
+#BSUB -e job_out/yolo_evaluation_%J.err
 
 # -- end of LSF options --
 
@@ -37,16 +37,13 @@
 MODEL=yolo
 REPO=${HOME}/deep-learning-project
 
-OUT=${REPO}/job_out/${MODEL}/${LSB_JOBID}
-mkdir -p ${OUT}
+LAST_JOBID=$(find ${REPO}/job_out/${MODEL} -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1 | sed 's#.*/##p' | head -n 1)  # Get the latest run
+OUT=${REPO}/job_out/${MODEL}/${LAST_JOBID}
+
 
 # Activate venv
 module load python3/3.10.14
 source ${REPO}/.venv/bin/activate
-
-
-##### TRAINING #####
-python3 ${REPO}/src/train_yolo.py ${OUT}
 
 
 ##### EVALUATION #####
@@ -61,4 +58,4 @@ python3 ${REPO}/src/evaluate_yolo.py ${OUT} 5
 # python3 ${REPO}/src/make_submission_yolo.py ${OUT}
 
 # printf "\n[*] Submitting to Kaggle\n"
-# kaggle competitions submit -c airbus-ship-detection -f ${OUT}/submission.csv -m "Automatic submission YOLO ${LSB_JOBID} - With ${LOSS}"
+# kaggle competitions submit -c airbus-ship-detection -f ${OUT}/submission.csv -m "Automatic submission YOLO ${LAST_JOBID} - With ${LOSS}"

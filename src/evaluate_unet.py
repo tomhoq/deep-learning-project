@@ -21,13 +21,13 @@ num_of_outputs = 1
 if len(argv) == 4:
     num_of_outputs = int(argv[3])
 
+
 model = get_model(model_name)
 
-print(f"\n[*] Evaluating {model_name} model")
+print(f"\n[*] Evaluating {model_name} (running on {'GPU' if torch.cuda.is_available() else 'CPU'})")
 
 
 ########## Plot losses ##########
-RUN_ID = 1
 log_file = path.join(out_path, 'train.log')
 logs = pd.read_json(log_file, lines=True)
 
@@ -55,7 +55,6 @@ plt.savefig(path.join(out_path, 'evaluation', 'loss.png'))
 model_path = path.join(out_path, 'model.pt')
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"[!] RUNNING ON {'GPU' if torch.cuda.is_available() else 'CPU'}\n")
 
 # Load model
 state = torch.load(str(model_path), map_location=device, weights_only=False)
@@ -83,3 +82,6 @@ for i in range(num_of_outputs):
     compare_model_outputs_with_ground_truths(images, gt, out)
     plt.savefig(path.join(out_path, 'evaluation', f"model_vs_ground_truth_{i + 1}.png"))
 #####################################
+
+
+print("[+] Finished evaluating")
