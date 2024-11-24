@@ -12,11 +12,11 @@ import numpy as np
 
 def get_unet_train_val_datasets(transform = None):
     if transform is None:
-        transform = get_transforms()
+        train_transform, val_transform = get_transforms()
 
     df = get_dataframe()
-    train_ds = AirbusUnetDataset(df['train'], transform = transform)
-    valid_ds = AirbusUnetDataset(df['validation'], transform = transform)
+    train_ds = AirbusUnetDataset(df['train'], transform = train_transform)
+    valid_ds = AirbusUnetDataset(df['validation'], transform = val_transform)
 
     return train_ds, valid_ds
 
@@ -50,7 +50,7 @@ class AirbusUnetDataset(torch.utils.data.Dataset):
         img_path = os.path.join(PATHS[self.mode], img_file_name)
 
         # Get the image and the mask (i.e. the ground truth)
-        img = self.img_transform(imread(img_path))
+        img = imread(img_path)
         mask = masks_as_image(self.image_masks[idx])
         
         # Apply the custom transform
@@ -58,9 +58,11 @@ class AirbusUnetDataset(torch.utils.data.Dataset):
             img, mask = self.transform(img, mask)
 
         if self.mode == 'train':
-            return img, torch.from_numpy(np.moveaxis(mask, -1, 0)).float()  
+            label = torch.from_numpy(np.moveaxis(mask, -1, 0)).float()  
         else:
-            return img, str(img_file_name)
+            label = str(img_file_name)
+
+        return self.img_transform(img), label
 
 
 def get_transforms():

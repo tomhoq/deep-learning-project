@@ -1,4 +1,4 @@
-from utils.train import train
+from utils.trainer import Trainer
 from models.unet.src.unet import UNet
 import torch
 from sys import argv
@@ -34,7 +34,7 @@ torch.compile(model)
 
 LR = 2e-3
 
-train(
+Trainer(
     model = model,
     train_dataset = train_dataset,
     val_dataset = val_dataset,

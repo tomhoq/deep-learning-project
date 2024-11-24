@@ -2,11 +2,12 @@ from models.unet.src.utils.dataset import get_unet_train_val_datasets
 from models.yolo.loss import YoloLoss
 from utils.get_model import get_model
 from utils.losses import BCEDiceWithLogitsLoss, BCEJaccardWithLogitsLoss, DiceLoss, MixedLoss
-from utils.train import train
+from utils.trainer import Trainer
 from models.unet.src.unet import UNet
 import torch
 from sys import argv
 from models.unet.src.utils.validation import validation as unet_validation
+import logging
 
 # Check arguments
 if len(argv) != 4:
@@ -16,7 +17,7 @@ model_argv = argv[1]
 loss = argv[2]
 out_path = argv[3]
 
-print(f"\n[+] MODEL = {model_argv}")
+print(f"\nMODEL = {model_argv}")
 
 train_dataset, val_dataset = get_unet_train_val_datasets()
 
@@ -26,30 +27,30 @@ loss_function = None
 
 if loss == 'bce':
     loss_function = torch.nn.BCEWithLogitsLoss()
-    print('[+] Using BCE loss')
+    print('Using BCE loss')
 elif loss == 'cross_entropy':
     loss_function = torch.nn.CrossEntropyLoss()
-    print('[+] Using CrossEntropyLoss')
+    print('Using CrossEntropyLoss')
 #
 elif loss == 'jaccard':
     loss_function = BCEJaccardWithLogitsLoss()
-    print('[+] Using Jaccard loss')
+    print('Using Jaccard loss')
 #
 elif loss == 'jaccard2':
     loss_function = BCEJaccardWithLogitsLoss(jaccard_weight=5, smooth=1e-15)
-    print('[+] Using Jaccard loss (jaccard_weight=5, smooth=1e-15)')
+    print('Using Jaccard loss (jaccard_weight=5, smooth=1e-15)')
 #
 elif loss == 'dice':
     loss_function = BCEDiceWithLogitsLoss()
-    print('[+] Using DICE loss')
+    print('Using DICE loss')
 #
 elif loss == 'dice_no_bce':
     loss_function = DiceLoss()
-    print('[+] Using DICE loss (but without BCE)')
+    print('Using DICE loss (but without BCE)')
 #
 elif loss == 'mixed':
     loss_function = MixedLoss(10.0, 2.0)
-    print('[+] Using MixedLoss(10.0, 2.0)')
+    print('Using MixedLoss(10.0, 2.0)')
 ####################
 
 
@@ -58,13 +59,13 @@ elif loss == 'mixed':
 BATCH_SIZE_TRAIN = 16
 BATCH_SIZE_VALID = 4
 LR = 2e-5
-N_EPOCHS = 5
+N_EPOCHS = 15
 
 model = get_model(model_argv)
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, patience=1, mode='max')
 
-train(
+Trainer(
     model = model,
     train_dataset = train_dataset,
     val_dataset = val_dataset,

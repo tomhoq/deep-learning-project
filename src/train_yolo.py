@@ -3,10 +3,12 @@ from models.yolo.loss import YoloLoss
 from models.yolo.utils.dice import match_and_calculate_dice
 from models.yolo.utils.helpers import get_bboxes
 from utils.get_model import get_model
-from utils.train import train
+from utils.trainer import Trainer
 import torch
 from sys import argv
 from models.yolo.validation import validation as yolo_validation 
+import logging
+from torch import nn
 
 
 # Check arguments
@@ -15,12 +17,12 @@ if len(argv) != 2:
 
 out_path = argv[1]
 
-print(f"\n[+] MODEL = YOLOv1")
+print(f"\nMODEL = YOLOv1")
 
 
 ##### LOSS #####
 loss_function = YoloLoss()
-print('[+] Using YoloLoss')
+print('Using YoloLoss')
 
 
 
@@ -31,15 +33,32 @@ train_dataset, val_dataset = get_yolo_train_val_datasets()
 
 ##### TRAIN #####
 
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 LR = 2e-5
-N_EPOCHS = 100
+N_EPOCHS = 20
 
 model = get_model("yolo")
-optimizer = torch.optim.Adam(model.parameters(), lr=LR, weight_decay=0.0005)
-scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, factor=0.1, patience=3, mode='max')
 
-train(
+####
+def init_weights(m):
+    if isinstance(m, nn.Conv2d):
+        nn.init.xavier_normal_(m.weight)
+        if m.bias is not None:
+            nn.init.zeros_(m.bias)
+    elif isinstance(m, nn.Linear):
+        nn.init.xavier_normal_(m.weight)
+        if m.bias is not None:
+            nn.init.zeros_(m.bias)
+model.apply(init_weights)
+####
+
+optimizer = torch.optim.Adam(model.parameters(), lr=LR, weight_decay=0.0005)
+# optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
+
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, factor=0.1, patience=5, mode='max')
+# scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+
+Trainer(
     model = model,
     train_dataset = train_dataset,
     val_dataset = val_dataset,
@@ -75,4 +94,4 @@ target_bboxes = torch.Tensor(target_boxes)[..., 3:7]
 
 dice_score = match_and_calculate_dice(pred_bboxes, target_bboxes)
 
-print("\n[+] DICE score: {:.5f}".format(dice_score))
+print("DICE score: {:.5f}".format(dice_score))

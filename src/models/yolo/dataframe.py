@@ -13,7 +13,7 @@ def sample_fn(x):
     """
 
     MAX_SAMPLES_NO_SHIPS = 1000
-    MAX_SAMPLES = 10000
+    MAX_SAMPLES = 25000
 
     # Undersample no ships images by 1000
     if (x.Counts == 0).all():

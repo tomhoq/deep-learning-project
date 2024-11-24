@@ -1,6 +1,8 @@
+from sys import stdout
 from typing import Literal
 import torch
 from torch import Tensor
+from tqdm import tqdm
 from models.yolo.utils.intersection_over_union import get_intersection_and_areas
 import numpy as np
 
@@ -35,6 +37,8 @@ def match_and_calculate_dice(pred_boxes: torch.Tensor, target_boxes: torch.Tenso
         # Handle edge cases where there are no predictions or targets
         return 0.0
 
+    tq = tqdm(total=len(pred_boxes) * len(target_boxes), desc='Calculating DICE score', file=stdout)
+
     # Compute DICE scores between all predictions and targets
     dice_scores = []
     for i, pred_box in enumerate(pred_boxes):
@@ -44,6 +48,10 @@ def match_and_calculate_dice(pred_boxes: torch.Tensor, target_boxes: torch.Tenso
             # Skip if score is 0 ?????
             if score > 0:
                 dice_scores += [score]
+
+            tq.update()
+
+    tq.close()
 
     if len(dice_scores) == 0:
         return 0

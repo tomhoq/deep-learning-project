@@ -1,9 +1,9 @@
-from numpy import ceil
 import torch
 import torch.nn.functional as F
 from models.yolo.utils.dice import dice, match_and_calculate_dice
 from models.yolo.utils.mean_average_precision import mean_average_precision
 from models.yolo.utils.helpers import get_bboxes
+import logging
 
 
 @torch.no_grad()

@@ -1,6 +1,5 @@
-from numpy import ceil
 import torch
-import torch.nn.functional as F
+import logging
 
 @torch.no_grad()
 def validation(model: torch.nn.Module, loss_function, valid_loader, device, scheduler = None):
