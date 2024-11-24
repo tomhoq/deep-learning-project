@@ -3,7 +3,7 @@ from sys import argv
 from os import path
 import matplotlib.pyplot as plt
 import torch
-from utils.dataset import AirbusDataset, get_dataframes
+from models.unet.src.utils.dataset import get_unet_train_val_datasets
 from utils.get_model import get_model
 from utils.helpers import compare_model_outputs_with_ground_truths
 
@@ -65,9 +65,7 @@ model = model.to(device)
 model.eval()
 
 # Load data
-df = get_dataframes()
-train_dataset = AirbusDataset(mode='train', in_df=df['train'])
-val_dataset = AirbusDataset(mode='validation', in_df=df['validation'])
+train_dataset, val_dataset = get_unet_train_val_datasets()
 
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=8, shuffle=True, num_workers=0)
 loader_iter = iter(val_loader)

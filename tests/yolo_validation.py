@@ -5,7 +5,6 @@ from models.yolo.loss import YoloLoss
 from models.yolo.dataset import get_yolo_train_val_datasets
 from utils.get_model import get_model
 import torch
-from models.resnet34.dataset import AirbusDataset as ResnetDataset
 from models.yolo.validation import validation as yolo_validation 
 
 

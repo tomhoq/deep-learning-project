@@ -1,12 +1,12 @@
+from models.unet.src.utils.dataset import get_unet_train_val_datasets
 from models.yolo.loss import YoloLoss
 from utils.get_model import get_model
 from utils.losses import BCEDiceWithLogitsLoss, BCEJaccardWithLogitsLoss, DiceLoss, MixedLoss
 from utils.train import train
 from models.unet.src.unet import UNet
-from utils.dataset import AirbusDataset, get_dataframes
 import torch
 from sys import argv
-from utils.validation import validation as unet_validation
+from models.unet.src.utils.validation import validation as unet_validation
 
 # Check arguments
 if len(argv) != 4:
@@ -18,10 +18,7 @@ out_path = argv[3]
 
 print(f"\n[+] MODEL = {model_argv}")
 
-
-df = get_dataframes()
-train_dataset = AirbusDataset(mode='train', in_df=df['train'])
-val_dataset = AirbusDataset(mode='validation', in_df=df['validation'])
+train_dataset, val_dataset = get_unet_train_val_datasets()
 
 
 ####################
@@ -61,11 +58,11 @@ elif loss == 'mixed':
 BATCH_SIZE_TRAIN = 16
 BATCH_SIZE_VALID = 4
 LR = 2e-5
-N_EPOCHS = 10
+N_EPOCHS = 5
 
 model = get_model(model_argv)
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)
-scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, factor=0.1, patience=3, mode='max')
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, patience=1, mode='max')
 
 train(
     model = model,

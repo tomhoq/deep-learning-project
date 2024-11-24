@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from .metrics import Metrics
+from .validation_metrics import Metrics
 
 
 @torch.no_grad()

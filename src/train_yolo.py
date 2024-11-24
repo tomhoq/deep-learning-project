@@ -36,7 +36,7 @@ LR = 2e-5
 N_EPOCHS = 100
 
 model = get_model("yolo")
-optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+optimizer = torch.optim.Adam(model.parameters(), lr=LR, weight_decay=0.0005)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, factor=0.1, patience=3, mode='max')
 
 train(

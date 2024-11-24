@@ -13,7 +13,7 @@ def sample_fn(x):
     """
 
     MAX_SAMPLES_NO_SHIPS = 1000
-    MAX_SAMPLES = 10000
+    MAX_SAMPLES = 25000
 
     # Undersample no ships images by 1000
     if (x.Counts == 0).all():
@@ -25,19 +25,19 @@ def sample_fn(x):
 
 def get_dataframe():
     """
-    Returns dataframes with balanced classes (max 1000 images for each class, e.g. 1000 images with 0 ships, 1000 images with 1 ship, ...).
-    Each row contains the ImageId, the Bbox (in yolo format: [xc, yc, h, w]) and the Bbox area and the number of ships for that image (Counts).
+    Returns dataframes with balanced classes (max tot images for each class, e.g. 1000 images with 0 ships, 1000 images with 1 ship, ...).
+    Each row contains the ImageId, the rle mask and the number of ships for that image (Counts). 
     
     Returns:
         dict: { 'train': train_df, 'validation': valid_df }
 
     Example:
-            ImageId                                               Bbox  BboxArea  Counts
-    0  000194a2d.jpg  [0.625, 0.38671875, 0.026041666666666668, 0.02...     440.0     5 
-    1  000194a2d.jpg  [0.09830729166666667, 0.4967447916666667, 0.01...     153.0     5
-    2  000194a2d.jpg  [0.3665364583333333, 0.23372395833333334, 0.01...     517.0     5
-    3  000194a2d.jpg  [0.09765625, 0.5032552083333334, 0.00130208333...       6.0     5
-    4  000194a2d.jpg  [0.4557291666666667, 0.244140625, 0.0247395833...     722.0     5
+            ImageId                                      EncodedPixels     Counts
+    0  000155de5.jpg  264661 17 265429 33 266197 33 266965 33 267733...      1
+    1  000194a2d.jpg  360486 1 361252 4 362019 5 362785 8 363552 10 ...      5
+    2  000194a2d.jpg  51834 9 52602 9 53370 9 54138 9 54906 9 55674 ...      5
+    3  000194a2d.jpg  198320 10 199088 10 199856 10 200624 10 201392...      5
+    4  000194a2d.jpg  55683 1 56451 1 57219 1 57987 1 58755 1 59523 ...      5
     """
 
     # Get all
@@ -57,21 +57,6 @@ def get_dataframe():
     ship_count_df = df.copy()
     ship_count_df["Counts"] = ship_count_df["EncodedPixels"].map(lambda x:1 if isinstance(x,str) else 0)
     ship_count_df = ship_count_df.groupby("ImageId").agg({ "Counts":"sum" }).reset_index()
-
-
-    ########## MODIFY DF FOR YOLO (bboxes instead of mask rle) ##########
-
-    # Add bbox
-    df["Bbox"] = df["EncodedPixels"].apply(lambda x: rle2bbox(x,(768,768)) if isinstance(x, str) else [])
-    # Remove RLE
-    df.drop("EncodedPixels", axis=1, inplace=True)
-
-    # Add box area
-    df["BboxArea"] = df["Bbox"].map(lambda x:x[2]*768*x[3]*768 if len(x) > 0 else 0)
-
-    # Remove boxes which are less than 1 percentile
-    PERCENTILE_THRESHOLD = 1
-    df = df[ df["BboxArea"] > np.percentile(df["BboxArea"], PERCENTILE_THRESHOLD) ]
 
 
     ########## BALANCE DATASET ##########
