@@ -92,6 +92,10 @@ for idx in range(batch_size):
     image = normalize8(image)
     image = np.ascontiguousarray(image)
 
+    # Keep only boxes with a certain confidence score
+    CONFIDENCE_SCORE_THRESHOLD = 0.5
+    pred_boxes = [box for box in pred_boxes if box[1] > CONFIDENCE_SCORE_THRESHOLD]
+
     draw_bboxes_on_image(image, pred_boxes)
 
     # Plotting the model output in the left column
