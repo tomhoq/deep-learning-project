@@ -36,12 +36,13 @@ model.eval()
 
 
 ########## Data ##########
-list_img_test = os.listdir(f"{DATA_DIR}/my_test_subset")
+my_path = f"{DATA_DIR}/my_test_subset"
+list_img_test = os.listdir(my_path)
 test_df = pd.DataFrame({ 'ImageId': list_img_test, 'EncodedPixels': None })
 t = DualCompose([CenterCrop((448,448,3))])
 # Keep the unet dataset because we're just using as a facade, the 'test' mode deoesn't do much
-ds = AirbusUnetDataset(test_df, mode='test', transform=t)
-loader = torch.utils.data.DataLoader(dataset=ds, shuffle=False, batch_size=5, num_workers=0)
+ds = AirbusUnetDataset(test_df, mode='test', transform=t, path=my_path)
+loader = torch.utils.data.DataLoader(dataset=ds, shuffle=False, batch_size=len(list_img_test), num_workers=0)
 batch_size = loader.batch_size
 loader_iter = iter(loader)
 

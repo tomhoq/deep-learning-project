@@ -61,13 +61,15 @@ def get_dataframe():
 
     ########## MODIFY DF FOR YOLO (bboxes instead of mask rle) ##########
 
+    IMG_SIZE = 768
+
     # Add bbox
-    df["Bbox"] = df["EncodedPixels"].apply(lambda x: rle2bbox(x,(768,768)) if isinstance(x, str) else [])
+    df["Bbox"] = df["EncodedPixels"].apply(lambda x: rle2bbox(x,(IMG_SIZE,IMG_SIZE)) if isinstance(x, str) else [])
     # Remove RLE
     df.drop("EncodedPixels", axis=1, inplace=True)
 
     # Add box area
-    df["BboxArea"] = df["Bbox"].map(lambda x:x[2]*768*x[3]*768 if len(x) > 0 else 0)
+    df["BboxArea"] = df["Bbox"].map(lambda x:x[2]*IMG_SIZE*x[3]*IMG_SIZE if len(x) > 0 else 0)
 
     # Remove boxes which are less than 1 percentile
     PERCENTILE_THRESHOLD = 1

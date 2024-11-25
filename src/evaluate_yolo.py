@@ -10,6 +10,8 @@ from models.yolo.utils.non_max_suppression import non_max_suppression
 from utils.get_model import get_model
 import cv2
 
+from utils.helpers import draw_bboxes_on_image
+
 
 ########## Arguments ##########
 # Check arguments
@@ -49,20 +51,6 @@ plt.tight_layout()
 plt.savefig(path.join(out_path, 'evaluation', 'loss.png'))
 #####################################
 
-
-
-def draw_bboxes_on_image(image, boxes):
-    for box in boxes:
-        box = box[2:]
-        x,y,w,h = box[0], box[1], box[2], box[3]
-        img_size = image.shape[0]
-
-        Xmin  = int((x - w/2) * img_size)
-        Ymin  = int((y - h/2) * img_size)
-        Xmax  = int((x + w/2) * img_size)
-        Ymax  = int((y + h/2) * img_size)
-
-        cv2.rectangle(image, (Xmin,Ymin), (Xmax,Ymax), (255,0,0), thickness = 2)
 
 
 

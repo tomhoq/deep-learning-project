@@ -93,11 +93,10 @@ def convert_cellboxes(predictions, S, C):
     """
     Converts bounding boxes output from Yolo with
     an image split size of S into entire image ratios
-    rather than relative to cell ratios. Tried to do this
-    vectorized, but this resulted in quite difficult to read
-    code... Use as a black box? Or implement a more intuitive,
-    using 2 for loops iterating range(S) and convert them one
-    by one, resulting in a slower but more readable implementation.
+    rather than relative to cell ratios. 
+
+    Returns:
+        boxes in format [class_pred, prob_score, x1, y1, w, h]
     """
 
     predictions = predictions.to("cpu")
@@ -113,12 +112,10 @@ def convert_cellboxes(predictions, S, C):
     cell_indices = torch.arange(7).repeat(batch_size, 7, 1).unsqueeze(-1)
     x = 1 / S * (best_boxes[..., :1] + cell_indices)
     y = 1 / S * (best_boxes[..., 1:2] + cell_indices.permute(0, 2, 1, 3))
-    w_y = 1 / S * best_boxes[..., 2:4]
-    converted_bboxes = torch.cat((x, y, w_y), dim=-1)
+    w_h = 1 / S * best_boxes[..., 2:4]
+    converted_bboxes = torch.cat((x, y, w_h), dim=-1)
     predicted_class = predictions[..., :C].argmax(-1).unsqueeze(-1)
-    best_confidence = torch.max(predictions[..., C], predictions[..., C + 5]).unsqueeze(
-        -1
-    )
+    best_confidence = torch.max(predictions[..., C], predictions[..., C + 5]).unsqueeze(-1)
     converted_preds = torch.cat(
         (predicted_class, best_confidence, converted_bboxes), dim=-1
     )

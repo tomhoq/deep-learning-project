@@ -22,7 +22,7 @@ def get_unet_train_val_datasets(transform = None):
 
 
 class AirbusUnetDataset(torch.utils.data.Dataset):
-    def __init__(self, df: pd.DataFrame, transform=None, mode: Literal['train', 'test'] = 'train'):
+    def __init__(self, df: pd.DataFrame, transform=None, mode: Literal['train', 'test'] = 'train', path = None):
         # Get ImageIds and masks from the dataframe
         grp = list(df.groupby('ImageId'))
         self.image_ids =  [_id for _id, _ in grp] 
@@ -30,6 +30,10 @@ class AirbusUnetDataset(torch.utils.data.Dataset):
 
         self.transform = transform
         self.mode = mode
+        if path is None:
+            self.path = PATHS[self.mode]
+        else:
+            self.path = path
         
         # Baseline transform for the images
         self.img_transform = transforms.Compose([
@@ -47,7 +51,7 @@ class AirbusUnetDataset(torch.utils.data.Dataset):
         img_file_name = self.image_ids[idx]
 
         # Get the image either from the TRAIN folder or the TEST folder (depending on the mode)
-        img_path = os.path.join(PATHS[self.mode], img_file_name)
+        img_path = os.path.join(self.path, img_file_name)
 
         # Get the image and the mask (i.e. the ground truth)
         img = imread(img_path)

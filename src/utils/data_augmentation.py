@@ -4,6 +4,7 @@ import cv2
 import torch
 from torchvision.transforms.functional import adjust_brightness, adjust_contrast
 from PIL import Image
+import torchvision.transforms as transforms
 
 
 
@@ -126,6 +127,23 @@ class CenterCrop:
             if mask.ndim == 2:
                 mask = np.expand_dims(mask, axis=2)
             mask = mask[y1:y2, x1:x2,:]
+
+        return img, mask
+
+
+class Resize:
+    def __init__(self, shape):
+        self.shape = shape
+
+    def __call__(self, img, mask=None):
+        t = transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.Resize(self.shape),
+        ])
+
+        img = t(img)
+        if mask is not None:
+           mask = t(mask) 
 
         return img, mask
 
