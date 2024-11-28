@@ -35,16 +35,13 @@
 
 
 MODEL=unet
-# MODEL=unet_resnet34
-# MODEL=unet34
-
 LOSS=bce
-# LOSS=dice
-# LOSS=dice_no_bce
-# LOSS=jaccard
-# LOSS=jaccard2
-# LOSS=mixed
 
+LR=0.00002
+WD=0
+EPOCHS=15
+BS_TRAIN=16
+BS_VALID=4
 
 
 
@@ -60,7 +57,7 @@ source ${REPO}/.venv/bin/activate
 
 
 ##### TRAINING #####
-python3 ${REPO}/src/train_unet.py ${MODEL} ${LOSS} ${OUT}
+python3 ${REPO}/src/train_unet.py --out-path ${OUT} --epochs ${EPOCHS} --learning-rate ${LR} --weight-decay ${WD} --batch-size-train ${BS_TRAIN} --batch-size-valid ${BS_VALID}
 
 
 ##### EVALUATION #####

@@ -8,7 +8,7 @@ class YoloLoss(nn.Module):
     Calculate the loss for yolo (v1) model
     """
 
-    def __init__(self, S=7, B=2, C=1):
+    def __init__(self, lambda_noobj=0.5, lambda_coord=5, S=7, B=2, C=1):
         super().__init__()
         self.mse = nn.MSELoss(reduction="sum")
 
@@ -23,8 +23,8 @@ class YoloLoss(nn.Module):
 
         # These are from Yolo paper, signifying how much we should
         # pay loss for no object (noobj) and the box coordinates (coord)
-        self.lambda_noobj = 0.5
-        self.lambda_coord = 5
+        self.lambda_noobj = lambda_noobj
+        self.lambda_coord = lambda_coord
 
 
     def forward(self, predictions, target):

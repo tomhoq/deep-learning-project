@@ -34,6 +34,19 @@
 
 
 
+
+
+LR=0.00002
+WD=0.0005
+EPOCHS=20
+BS=32
+LN=0.5
+LC=5
+
+
+
+
+
 MODEL=yolo
 REPO=${HOME}/deep-learning-project
 
@@ -46,7 +59,7 @@ source ${REPO}/.venv/bin/activate
 
 
 ##### TRAINING #####
-python3 ${REPO}/src/train_yolo.py ${OUT}
+python3 ${REPO}/src/train_yolo.py --out-path ${OUT} --epochs ${EPOCHS} --learning-rate ${LR} --weight-decay ${WD} --batch-size ${BS} --lambda-noobj ${LN} --lambda-coord ${LC} 
 
 
 ##### EVALUATION #####
