@@ -2,3 +2,4 @@
 __pycache__/
 job_out/
 wandb/
+*pt

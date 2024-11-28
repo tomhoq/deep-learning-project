@@ -18,13 +18,13 @@ Calculates Mean Average Precision (mAP) for object detection.
 
 
 def mean_average_precision(
-    pred_boxes: list, true_boxes: list, iou_threshold: float = 0.5, box_format: Literal['midpoint', 'corners'] = 'midpoint', num_classes: int = 20
+    pred_boxes: list, true_boxes: list, iou_threshold: float = 0.5, box_format: Literal['midpoint', 'corners'] = 'midpoint', num_classes: int = 1
 ):
     """
     Calculates mean average precision 
 
     Parameters:
-        pred_boxes (list): list of lists containing all bboxes with each bboxes specified as [train_idx, class_prediction, prob_score, x1, y1, x2, y2]
+        pred_boxes (list): list of lists containing all bboxes with each bboxes specified as [train_idx, class_prediction, prob_score, x, y, w, h]
         true_boxes (list): similar as pred_boxes except all the correct ones 
         iou_threshold (float): threshold where predicted bboxes is correct
         box_format (str): "midpoint" or "corners" used to specify bboxes
@@ -69,19 +69,18 @@ def mean_average_precision(
         for key, val in amount_bboxes.items():
             amount_bboxes[key] = torch.zeros(val)
 
-
         # Sort by box probabilities which is index 2 (higher probability first)
+        # recall that box = [train_idx, class_prediction, prob_score, x, y, w, h]
         detections.sort(key=lambda x: x[2], reverse=True)
 
         # Initialize variables
         TP = torch.zeros((len(detections)))
         FP = torch.zeros((len(detections)))
-        
+
         # If no true bboxes exists for this class then we can safely skip
         total_true_bboxes = len(ground_truths)
         if total_true_bboxes == 0:
             continue
-
 
         for detection_idx, detection in enumerate(detections):
 
@@ -125,6 +124,10 @@ def mean_average_precision(
         recalls = TP_cumsum / (total_true_bboxes + epsilon)
         precisions = torch.divide(TP_cumsum, (TP_cumsum + FP_cumsum + epsilon))
 
+        print("Recall with sum()", TP.sum() / (total_true_bboxes + epsilon))
+        print("Precision with sum()", TP.sum() / (TP.sum() + FP.sum() + epsilon))
+        print("-----------")
+
         # Add boundary Values to make the precision-recall curve start at (0,1): 
         #   - precision starts at 1 1 when recall is 0 0 (before any detections). 
         #   - recall starts at 0 0 with no detections. 
@@ -134,5 +137,10 @@ def mean_average_precision(
 
         # Calculate area under the curve, which is by definition the average precision (torch.trapz for numerical integration)
         average_precisions.append(torch.trapz(precisions, recalls))
+
+    # print("avgP: ", precisions.mean())
+    # print("avgR: ", recalls.mean())
+    # print("avgPres: ", average_precisions, sum(average_precisions))
+    # print("###################")
 
     return sum(average_precisions) / len(average_precisions)

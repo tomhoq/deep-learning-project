@@ -76,6 +76,15 @@ loader_iter = iter(val_loader)
 S = 7
 C = 1
 
+# # Calculate metrics
+# from models.yolo.validation import validation as yolo_validation 
+# from models.yolo.loss import YoloLoss
+# loader_args = dict(shuffle=True, num_workers=2, pin_memory=torch.cuda.is_available())
+# valid_loader = torch.utils.data.DataLoader(val_dataset, batch_size=32, **loader_args)
+# comb_loss_metrics = yolo_validation(model, YoloLoss(), valid_loader, device, None)
+# print(comb_loss_metrics)
+# exit()
+
 # Display some images from loader
 for i in range(num_of_outputs):
     plt.figure(figsize = (15,15))

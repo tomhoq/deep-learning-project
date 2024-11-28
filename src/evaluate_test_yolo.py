@@ -1,3 +1,4 @@
+import math
 import os
 import numpy as np
 import pandas as pd
@@ -10,7 +11,8 @@ from models.yolo.utils.helpers import cellboxes_to_boxes
 from models.yolo.utils.non_max_suppression import non_max_suppression
 from utils.data_augmentation import DualCompose, Resize
 from utils.get_model import get_model
-from utils.helpers import DATA_DIR, draw_bboxes_on_image
+from utils.helpers import DATA_DIR, draw_bboxes_on_image, get_image_from_tensor_and_masks
+
 
 
 ########## Arguments ##########
@@ -74,11 +76,16 @@ def normalize8(I):
   mx -= mn
 
   I = ((I - mn)/mx) * 255
-  return I.astype(np.uint8)
+  I = I.astype(np.uint8)
+  return np.ascontiguousarray(I)
 
 
-_, axes = plt.subplots(batch_size, 1, figsize=(5, 5 * batch_size))
-axes[0].set_title("Test output", fontsize=24, pad=20)
+cols = 2
+rows = math.ceil(batch_size / cols)  # Calculate the number of rows needed
+fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 5 * rows))
+axes = axes.flatten() if rows > 1 else [axes]
+
+# plt.suptitle("Test output", fontsize=24)
 
 for idx in range(batch_size):
     pred_boxes = non_max_suppression(
@@ -88,8 +95,7 @@ for idx in range(batch_size):
         box_format = 'midpoint',
     )
 
-    image = images[idx].permute(1, 2, 0).numpy()
-    image = normalize8(image)
+    image, _ = get_image_from_tensor_and_masks(images[idx], [])
     image = np.ascontiguousarray(image)
 
     # Keep only boxes with a certain confidence score
@@ -102,7 +108,12 @@ for idx in range(batch_size):
     axes[idx].imshow(image)
     axes[idx].axis('off')
 
-plt.tight_layout(rect=[0, 0, 1, 0.995])
+# Turn off unused subplots
+for i in range(batch_size, len(axes)):
+    axes[i].axis('off')
+
+# plt.tight_layout(rect=[0, 0, 1, 0.995])
+plt.tight_layout()
 plt.savefig(path.join(out_path, f"TEST_model.png"))
 #####################################
 
