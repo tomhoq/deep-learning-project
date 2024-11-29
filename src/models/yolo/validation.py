@@ -45,6 +45,8 @@ def add_metrics(metrics, predictions, ground_truths):
         preds = np.array([[xmin, ymin, xmax, ymax, class_id, confidence] for xmin, ymin, xmax, ymax, class_id, confidence in entries['pred']])
         metrics.add(preds, gt)
 
+    return grouped_data
+
 
 
 
@@ -65,10 +67,10 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
     )
 
     metric_fn = MetricBuilder.build_evaluation_metric("map_2d", async_mode=True, num_classes=1)
-    add_metrics(metric_fn, pred_boxes, target_boxes)
+    d = add_metrics(metric_fn, pred_boxes, target_boxes)
     mean_avg_prec = metric_fn.value(iou_thresholds=iou_threshold)['mAP'] 
 
-    dice_score = match_and_calculate_dice(torch.tensor(pred_boxes), torch.tensor(target_boxes))
+    dice_score = match_and_calculate_dice(d)
 
     print('    Valid loss: {:.5f}, mAP: {:.5f}, DICE: {:.5f}\n'.format(valid_loss, mean_avg_prec, dice_score))
 
