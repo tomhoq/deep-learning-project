@@ -206,6 +206,10 @@ def draw_bboxes_on_image(image: np.ndarray, boxes: list):
         x,y,w,h = box[2], box[3], box[4], box[5]
         img_size = image.shape[0]
 
+        # Xmin  = int(x * img_size)
+        # Ymin  = int(y * img_size)
+        # Xmax  = int((x + w) * img_size)
+        # Ymax  = int((y + h) * img_size)
         Xmin  = int((x - w/2) * img_size)
         Ymin  = int((y - h/2) * img_size)
         Xmax  = int((x + w/2) * img_size)
