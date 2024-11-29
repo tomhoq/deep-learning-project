@@ -1,3 +1,4 @@
+import json
 import pandas as pd
 from sys import argv
 from os import path
@@ -6,6 +7,7 @@ import torch
 from models.unet.src.utils.dataset import get_unet_train_val_datasets
 from utils.get_model import get_model
 from utils.helpers import compare_model_outputs_with_ground_truths
+from models.unet.src.utils.validation import validation as unet_validation
 
 
 ########## Arguments ##########
@@ -68,6 +70,14 @@ train_dataset, val_dataset = get_unet_train_val_datasets()
 
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=8, shuffle=True, num_workers=0)
 loader_iter = iter(val_loader)
+
+##### Calculate metrics #####
+comb_loss_metrics = unet_validation(model, torch.nn.BCEWithLogitsLoss(), val_loader, device, None)
+# Write to a file
+with open(path.join(out_path, 'evaluation', "metrics.txt"), "w") as file:
+    file.write(json.dumps(comb_loss_metrics, sort_keys=True))
+print("[+] Metrics saved")
+
 
 # Display some images from loader
 for i in range(num_of_outputs):

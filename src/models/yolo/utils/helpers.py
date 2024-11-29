@@ -1,3 +1,4 @@
+import time
 from typing import Literal
 import torch
 from tqdm import tqdm
@@ -15,7 +16,8 @@ def get_bboxes(
     C,
     box_format: Literal['midpoint', 'corners'] = 'midpoint',
     device="cuda",
-    loss_function = None
+    loss_function = None,
+    track_time = False,
 ):
     """
     Extracts predicted and true bounding boxes from a dataset loader using a given model.
@@ -33,6 +35,7 @@ def get_bboxes(
         - all_true_boxes: List of ground truth boxes above a confidence threshold.
     """
 
+    times = []
     all_pred_boxes = []
     all_true_boxes = []
     valid_loss = 0
@@ -48,7 +51,9 @@ def get_bboxes(
         labels = labels.to(device)
 
         with torch.no_grad():
+            starttime = time.time()
             predictions = model(x)
+            times.append(time.time() - starttime)
 
         if loss_function:
             loss = loss_function(predictions, labels)
@@ -82,9 +87,14 @@ def get_bboxes(
 
     model.train()
 
+
     if loss_function:
         valid_loss /= len(loader.dataset)
-        return all_pred_boxes, all_true_boxes, valid_loss
+        if track_time:
+            avg_time_ms = (sum(times) / len(times)) * 1000
+            return all_pred_boxes, all_true_boxes, valid_loss, avg_time_ms
+        else:
+            return all_pred_boxes, all_true_boxes, valid_loss
     else:
         return all_pred_boxes, all_true_boxes
 

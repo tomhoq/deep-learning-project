@@ -7,14 +7,7 @@ import logging
 from mean_average_precision import MetricBuilder
 
 
-"""
-??? Non so se x,y sono le coord del centro oppure di un angolo
-"""
 def convert_box_coords(x, y, w, h, class_pred, prob_score):
-    # xmin = x
-    # ymin = y
-    # xmax = x + w
-    # ymax = y + h
     xmin = x - w / 2
     ymin = y - h / 2
     xmax = x + w / 2
@@ -55,7 +48,7 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
     num_classes = 1
     iou_threshold = 0.5
 
-    pred_boxes, target_boxes, valid_loss = get_bboxes(
+    pred_boxes, target_boxes, valid_loss, inference_time = get_bboxes(
         valid_loader, 
         model, 
         iou_threshold=iou_threshold,
@@ -63,7 +56,8 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
         S = 7,
         C = num_classes,
         device = device, 
-        loss_function = loss_function
+        loss_function = loss_function,
+        track_time = True,
     )
 
     metric_fn = MetricBuilder.build_evaluation_metric("map_2d", async_mode=True, num_classes=1)
@@ -72,7 +66,7 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
 
     dice_score = match_and_calculate_dice(d)
 
-    print('    Valid loss: {:.5f}, mAP: {:.5f}, DICE: {:.5f}\n'.format(valid_loss, mean_avg_prec, dice_score))
+    print('    Valid loss: {:.5f}, mAP: {:.5f}, DICE: {:.5f}, Inference time: {:.2f}ms\n'.format(valid_loss, mean_avg_prec, dice_score, inference_time))
 
     if scheduler is not None:
         scheduler.step(mean_avg_prec)
@@ -81,4 +75,5 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
         'valid_loss': valid_loss.item(), 
         'mAP': mean_avg_prec.item(),
         'dice': dice_score.item(),
+        'inference_time_ms': inference_time,
     }

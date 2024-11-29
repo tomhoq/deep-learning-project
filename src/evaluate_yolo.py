@@ -126,8 +126,8 @@ for i in range(num_of_outputs):
         pred_image = image.copy()
         true_image = image.copy()
 
-        draw_bboxes_on_image(pred_image, pred_boxes)
-        draw_bboxes_on_image(true_image, true_boxes)
+        draw_bboxes_on_image(pred_image, pred_boxes, show_confidence_scores = False)
+        draw_bboxes_on_image(true_image, true_boxes, show_confidence_scores = False)
 
         # Plotting the model output in the left column
         axes[idx, 0].imshow(pred_image)

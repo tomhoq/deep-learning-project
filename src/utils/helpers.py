@@ -195,7 +195,7 @@ def compare_model_outputs_with_ground_truths(images, gt_masks, out_masks):
 
 
 
-def draw_bboxes_on_image(image: np.ndarray, boxes: list):
+def draw_bboxes_on_image(image: np.ndarray, boxes: list, confidence_score_threshold = 0.0, show_confidence_scores = True):
     """
     Draw bounding boxes on the given images
 
@@ -203,13 +203,12 @@ def draw_bboxes_on_image(image: np.ndarray, boxes: list):
     :param boxes: a list of boxes in the format [class_pred, confidence_score, x, y, w, h]
     """
     for box in boxes:
+        if box[1] <= confidence_score_threshold:
+            continue
+
         x,y,w,h = box[2], box[3], box[4], box[5]
         img_size = image.shape[0]
 
-        # Xmin  = int(x * img_size)
-        # Ymin  = int(y * img_size)
-        # Xmax  = int((x + w) * img_size)
-        # Ymax  = int((y + h) * img_size)
         Xmin  = int((x - w/2) * img_size)
         Ymin  = int((y - h/2) * img_size)
         Xmax  = int((x + w/2) * img_size)
@@ -219,12 +218,13 @@ def draw_bboxes_on_image(image: np.ndarray, boxes: list):
         cv2.rectangle(image, (Xmin,Ymin), (Xmax,Ymax), (255,0,0), thickness = 2)
 
         ### Draw confidence score next to the box ###
-        label = f"{box[1]:.2f}"
-        text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)[0]
-        text_w, text_h = text_size[0], text_size[1]
-        img_h, img_w = image.shape[:2]
-        # Adjust text position if it goes out of bounds
-        text_x = max(0, min(Xmin, img_w - text_w))  # Clamp X within [0, img_w - text_w]
-        text_y = max(0, min(Ymax + text_h + 10, img_h))  # Clamp Y within [0, img_h]
-        # Draw text
-        cv2.putText(image, label, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), thickness=2)
+        if show_confidence_scores:
+            label = f"{box[1]:.2f}"
+            text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)[0]
+            text_w, text_h = text_size[0], text_size[1]
+            img_h, img_w = image.shape[:2]
+            # Adjust text position if it goes out of bounds
+            text_x = max(0, min(Xmin, img_w - text_w))  # Clamp X within [0, img_w - text_w]
+            text_y = max(0, min(Ymax + text_h + 10, img_h))  # Clamp Y within [0, img_h]
+            # Draw text
+            cv2.putText(image, label, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), thickness=2)
