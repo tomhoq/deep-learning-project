@@ -4,8 +4,8 @@
 ### General options
 
 ### –- specify queue --
-##BSUB -q gpuv100
-#BSUB -q gpua100
+#BSUB -q gpuv100
+##BSUB -q gpua100
 
 ### -- set the job Name --
 #BSUB -J 241268-yolo-new
