@@ -3,10 +3,28 @@ from typing import Literal
 import torch
 from torch import Tensor
 from tqdm import tqdm
-from models.unet.src.utils.validation_metrics import compute_metrics
 from models.yolo.utils.intersection_over_union import get_intersection_and_areas
 import numpy as np
 from PIL import Image, ImageDraw
+import cv2
+
+
+def dice_score(mask1, mask2):
+    # Ensure the masks are binary
+    mask1 = ~mask1.astype(bool)
+    mask2 = ~mask2.astype(bool)
+    
+    # Compute intersection and union
+    intersection = np.sum(mask1 & mask2)
+    total_pixels = np.sum(mask1) + np.sum(mask2)
+    
+    # Handle division by zero
+    if total_pixels == 0:
+        return 1.0 if np.sum(mask1 == mask2) == mask1.size else 0.0
+    
+    # Compute Dice Score
+    dice = 2 * intersection / total_pixels
+    return dice
 
 
 def draw_bboxes_on_mask(boxes, image_size):
@@ -41,10 +59,8 @@ def dice(boxes_preds: Tensor, boxes_labels: Tensor, box_format: Literal['midpoin
 """
 DONT KNOW IF THIS ACTUALLY WORKS OR NOT.
 """
-def match_and_calculate_dice(grouped_data, batch_size, img_size = (448, 448), threshold: float = 0.5):
-
+def calculate_dice_yolo(grouped_data, batch_size, img_size = (448, 448), threshold: float = 0.5):
     dices = []
-    jaccards = []
 
     tq = tqdm(total=len(grouped_data), desc='Calculating DICE score', file=stdout)
     for train_idx, entries in grouped_data.items():
@@ -72,18 +88,15 @@ def match_and_calculate_dice(grouped_data, batch_size, img_size = (448, 448), th
             true = torch.tensor(draw_bboxes_on_mask(target_boxes, img_size))
 
         if len(pred_boxes) > 0 and len(target_boxes) > 0:
-            dice, jaccard = compute_metrics(pred, true, batch_size=batch_size, threshold=threshold)
-            dices.extend(dice)
-            jaccards.extend(jaccard)
+            dice = dice_score(pred.numpy(), true.numpy())
+            dices.append(dice)
         elif len(target_boxes) > 0:
-            dices.append(torch.tensor(0))
-            jaccards.append(torch.tensor(0))
-
+            dices.append(0)
+        
         tq.update()
 
     tq.close()
 
     dice = torch.tensor(dices).mean()
-    jaccard = torch.tensor(jaccards).mean()
 
-    return dice, jaccard
+    return dice

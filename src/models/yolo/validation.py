@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-from models.yolo.utils.dice import dice, match_and_calculate_dice
+from models.yolo.utils.dice import dice, calculate_dice_yolo
 from models.yolo.utils.helpers import get_bboxes
 import logging
 from mean_average_precision import MetricBuilder
@@ -65,13 +65,14 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
         track_time = True,
     )
 
+    print("[*] Calculating mAP")
     metric_fn = MetricBuilder.build_evaluation_metric("map_2d", async_mode=True, num_classes=1)
     d = add_metrics(metric_fn, pred_boxes, target_boxes)
     mean_avg_prec = metric_fn.value(iou_thresholds=iou_threshold)['mAP'] 
 
-    dice_score, jaccard = match_and_calculate_dice(d, valid_loader.batch_size)
+    dice_score = calculate_dice_yolo(d, valid_loader.batch_size)
 
-    print('    Valid loss: {:.5f}, mAP: {:.5f}, DICE: {:.5f}, Jaccard {:.5f}, Inference time: {:.2f}ms\n'.format(valid_loss, mean_avg_prec, dice_score, jaccard, inference_time))
+    print('[+] Valid loss: {:.5f}, mAP: {:.5f}, DICE: {:.5f}, Inference time: {:.2f}ms\n'.format(valid_loss, mean_avg_prec, dice_score, inference_time))
 
     if scheduler is not None:
         scheduler.step(mean_avg_prec)
@@ -80,6 +81,5 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
         'valid_loss': valid_loss.item(), 
         'mAP': mean_avg_prec.item(),
         'dice': dice_score.item(),
-        'jaccard': dice_score.item(),
         'inference_time_ms': inference_time,
     }
