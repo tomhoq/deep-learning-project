@@ -8,10 +8,10 @@ from mean_average_precision import MetricBuilder
 
 
 def convert_box_coords(x, y, w, h, class_pred, prob_score):
-    xmin = x - w / 2
-    ymin = y - h / 2
-    xmax = x + w / 2
-    ymax = y + h / 2
+    xmin = x - (w / 2)
+    ymin = y - (h / 2)
+    xmax = x + (w / 2)
+    ymax = y + (h / 2)
 
     return (xmin, ymin, xmax, ymax, class_pred, prob_score)
 
@@ -30,6 +30,11 @@ def add_metrics(metrics, predictions, ground_truths):
 
     for entry in predictions:
         train_idx, class_pred, prob_score, x, y, w, h = entry
+
+        # I dont know why this problem exists
+        if w < 0 or h < 0:
+            continue
+
         grouped_data[train_idx]['pred'].append(convert_box_coords(x, y, w, h, class_pred, prob_score))
 
     # Add to metrics
@@ -64,9 +69,9 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
     d = add_metrics(metric_fn, pred_boxes, target_boxes)
     mean_avg_prec = metric_fn.value(iou_thresholds=iou_threshold)['mAP'] 
 
-    dice_score = match_and_calculate_dice(d)
+    dice_score, jaccard = match_and_calculate_dice(d, valid_loader.batch_size)
 
-    print('    Valid loss: {:.5f}, mAP: {:.5f}, DICE: {:.5f}, Inference time: {:.2f}ms\n'.format(valid_loss, mean_avg_prec, dice_score, inference_time))
+    print('    Valid loss: {:.5f}, mAP: {:.5f}, DICE: {:.5f}, Jaccard {:.5f}, Inference time: {:.2f}ms\n'.format(valid_loss, mean_avg_prec, dice_score, jaccard, inference_time))
 
     if scheduler is not None:
         scheduler.step(mean_avg_prec)
@@ -75,5 +80,6 @@ def validation(model: torch.nn.Module, loss_function, valid_loader, device, sche
         'valid_loss': valid_loss.item(), 
         'mAP': mean_avg_prec.item(),
         'dice': dice_score.item(),
+        'jaccard': dice_score.item(),
         'inference_time_ms': inference_time,
     }

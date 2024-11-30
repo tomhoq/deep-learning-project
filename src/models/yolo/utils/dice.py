@@ -3,8 +3,30 @@ from typing import Literal
 import torch
 from torch import Tensor
 from tqdm import tqdm
+from models.unet.src.utils.validation_metrics import compute_metrics
 from models.yolo.utils.intersection_over_union import get_intersection_and_areas
 import numpy as np
+from PIL import Image, ImageDraw
+
+
+def draw_bboxes_on_mask(boxes, image_size):
+    """
+    Draw bounding boxes on a binary mask.
+    """
+    mask = Image.new('1', image_size, 0)  # Binary mask
+    draw = ImageDraw.Draw(mask)
+
+    for box in boxes:
+        x1, y1, x2, y2 = box.tolist()
+
+        x1  = int(x1 * image_size[0])
+        y1  = int(y1 * image_size[0])
+        x2  = int(x2 * image_size[0])
+        y2  = int(y2 * image_size[0])
+
+        draw.rectangle([x1, y1, x2, y2], outline=1, fill=1)
+
+    return np.array(mask, dtype=np.uint8)  # Convert to numpy array
 
 
 def dice(boxes_preds: Tensor, boxes_labels: Tensor, box_format: Literal['midpoint', 'corners'] = 'midpoint'):
@@ -19,20 +41,10 @@ def dice(boxes_preds: Tensor, boxes_labels: Tensor, box_format: Literal['midpoin
 """
 DONT KNOW IF THIS ACTUALLY WORKS OR NOT.
 """
-def match_and_calculate_dice(grouped_data, box_format: Literal['midpoint', 'corners'] = 'midpoint', threshold: float = 0.5):
-    """
-    Matches predicted boxes to target boxes and calculates the DICE score.
+def match_and_calculate_dice(grouped_data, batch_size, img_size = (448, 448), threshold: float = 0.5):
 
-    Args:
-    - grouped_data
-    - box_format (str): "midpoint" or "corners".
-    - threshold (float): Minimum DICE score to consider a valid match.
-
-    Returns:
-    - mean_dice (float): Mean DICE score after matching.
-    """
-
-    total_dice_scores = []
+    dices = []
+    jaccards = []
 
     tq = tqdm(total=len(grouped_data), desc='Calculating DICE score', file=stdout)
     for train_idx, entries in grouped_data.items():
@@ -40,24 +52,38 @@ def match_and_calculate_dice(grouped_data, box_format: Literal['midpoint', 'corn
             tq.update()
             continue
 
-        pred_group = torch.tensor(entries['pred'])[:, :4]
-        target_group = torch.tensor(entries['gt'])[:, :4]
+        pred_group = torch.tensor(entries['pred'])
+        target_group = torch.tensor(entries['gt'])
 
-        pred_group = pred_group.unsqueeze(1)  # Shape (N, 1, 4)
-        target_group = target_group.unsqueeze(0)  # Shape (1, M, 4)
-        dice_scores = dice(pred_group, target_group, box_format)  # Shape (N, M)
+        pred_boxes = pred_group[..., 0:4]  # Bounding boxes [x1, y1, x2, y2]
+        pred_scores = pred_group[..., 5]  # Objectness scores
+        pred_boxes = pred_boxes[pred_scores > threshold]
 
-        # Filter matches with DICE scores above the threshold
-        valid_dice_scores = dice_scores[dice_scores > threshold]
-        total_dice_scores.extend(valid_dice_scores.tolist())
+        target_boxes = target_group[..., 0:4]  # Bounding boxes [x1, y1, x2, y2]
+        target_scores = target_group[..., 5]  # Objectness scores
+        target_boxes = target_boxes[target_scores > threshold]
+
+        pred = torch.tensor([])
+        if len(pred_boxes) > 0:
+            pred = torch.tensor(draw_bboxes_on_mask(pred_boxes, img_size))
+
+        true = torch.tensor([])
+        if len(target_boxes) > 0:
+            true = torch.tensor(draw_bboxes_on_mask(target_boxes, img_size))
+
+        if len(pred_boxes) > 0 and len(target_boxes) > 0:
+            dice, jaccard = compute_metrics(pred, true, batch_size=batch_size, threshold=threshold)
+            dices.extend(dice)
+            jaccards.extend(jaccard)
+        elif len(target_boxes) > 0:
+            dices.append(torch.tensor(0))
+            jaccards.append(torch.tensor(0))
 
         tq.update()
 
     tq.close()
 
-    # Compute mean DICE score
-    if len(total_dice_scores) == 0:
-        return 0.0
-    else:
-        return np.mean(total_dice_scores)
+    dice = torch.tensor(dices).mean()
+    jaccard = torch.tensor(jaccards).mean()
 
+    return dice, jaccard

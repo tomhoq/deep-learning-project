@@ -21,6 +21,7 @@ def get_bboxes(
 ):
     """
     Extracts predicted and true bounding boxes from a dataset loader using a given model.
+    boxes in format [train_idx, class_pred, prob_score, xc, yc, w, h]
     
     1. Sets the model to evaluation mode.
     2. Loops through the DataLoader to process batches of images and labels.
@@ -106,7 +107,7 @@ def convert_cellboxes(predictions, S, C):
     rather than relative to cell ratios. 
 
     Returns:
-        boxes in format [class_pred, prob_score, x1, y1, w, h]
+        boxes in format [class_pred, prob_score, xc, yc, w, h]
     """
 
     predictions = predictions.to("cpu")
@@ -142,7 +143,7 @@ def cellboxes_to_boxes(out, S, C):
         S (int): The grid size (default is 7x7 for a typical YOLO model).
     
     Returns:
-        all_bboxes (List): A list of lists containing bounding box information for each example.
+        all_bboxes (List): A list of [class_pred, confidence_score, xc, yc, w, h]
     """
     converted_pred = convert_cellboxes(out, S, C).reshape(out.shape[0], S * S, -1)
     converted_pred[..., 0] = converted_pred[..., 0].long()
