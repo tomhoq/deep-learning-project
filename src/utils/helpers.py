@@ -13,6 +13,8 @@ PATHS = {
 }
 
 
+#################### RUN LENGTH ENCODING #################### 
+
 def rle_decode(mask_rle, shape=(768, 768)):
     '''
     From https://www.kaggle.com/paulorzp/run-length-encode-and-decode    
@@ -50,7 +52,7 @@ def multi_rle_encode(img):
     return [rle_encode(labels==k) for k in np.unique(labels[labels>0])]
 
 
-def masks_as_image(rle_masks):
+def masks_as_image(rle_masks, shape = (768, 768)):
     """
     Convert masks from list (run-length encoded) to image
 
@@ -58,7 +60,7 @@ def masks_as_image(rle_masks):
     """
 
     # Take the individual ship masks and create a single mask array for all ships
-    all_masks = np.zeros((768, 768), dtype=np.int16)
+    all_masks = np.zeros(shape, dtype=np.int16)
 
     for mask in rle_masks:
         if isinstance(mask, str):
@@ -66,6 +68,43 @@ def masks_as_image(rle_masks):
 
     return np.expand_dims(all_masks, -1)
 
+
+def rle2bbox(rle: str, shape = (768,768)):
+    """
+    Converts RLE to bound-box coordinates [xc, yc, h, w]
+
+    :param rle: The run length encoding
+    :param shape: The shape of the image
+    """
+
+    a = np.fromiter(rle.split(), dtype=np.uint)
+    a = a.reshape((-1, 2))
+    a[:,0] -= 1
+    
+    y0 = a[:,0] % shape[0]
+    y1 = y0 + a[:,1]
+    if np.any(y1 > shape[0]):
+        y0 = 0
+        y1 = shape[0]
+    else:
+        y0 = np.min(y0)
+        y1 = np.max(y1)
+    
+    x0 = a[:,0] // shape[0]
+    x1 = (a[:,0] + a[:,1]) // shape[0]
+    x0 = np.min(x0)
+    x1 = np.max(x1)
+    
+    if x1 > shape[1]:
+        raise ValueError("invalid RLE or image dimensions: x1=%d > shape[1]=%d" % (
+            x1, shape[1]
+        ))
+
+    xc = (x0+x1)/(2*shape[0])
+    yc = (y0+y1)/(2*shape[0])
+    w = np.abs(x1-x0)/shape[0]
+    h = np.abs(y1-y0)/shape[0]
+    return [xc, yc, h, w]
 
 
 #################### PLOTTING OR VIEWING IMAGES #################### 
@@ -153,3 +192,39 @@ def compare_model_outputs_with_ground_truths(images, gt_masks, out_masks):
         axes[i, 1].axis('off')
     
     plt.tight_layout(rect=[0, 0, 1, 0.995])
+
+
+
+def draw_bboxes_on_image(image: np.ndarray, boxes: list, confidence_score_threshold = 0.0, show_confidence_scores = True):
+    """
+    Draw bounding boxes on the given images
+
+    :param image: The image to draw on (numpy array)
+    :param boxes: a list of boxes in the format [class_pred, confidence_score, x, y, w, h]
+    """
+    for box in boxes:
+        if box[1] <= confidence_score_threshold:
+            continue
+
+        x,y,w,h = box[2], box[3], box[4], box[5]
+        img_size = image.shape[0]
+
+        Xmin  = int((x - w/2) * img_size)
+        Ymin  = int((y - h/2) * img_size)
+        Xmax  = int((x + w/2) * img_size)
+        Ymax  = int((y + h/2) * img_size)
+
+        ### Draw box ###
+        cv2.rectangle(image, (Xmin,Ymin), (Xmax,Ymax), (255,0,0), thickness = 2)
+
+        ### Draw confidence score next to the box ###
+        if show_confidence_scores:
+            label = f"{box[1]:.2f}"
+            text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)[0]
+            text_w, text_h = text_size[0], text_size[1]
+            img_h, img_w = image.shape[:2]
+            # Adjust text position if it goes out of bounds
+            text_x = max(0, min(Xmin, img_w - text_w))  # Clamp X within [0, img_w - text_w]
+            text_y = max(0, min(Ymax + text_h + 10, img_h))  # Clamp Y within [0, img_h]
+            # Draw text
+            cv2.putText(image, label, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), thickness=2)

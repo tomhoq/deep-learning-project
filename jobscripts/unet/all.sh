@@ -8,7 +8,7 @@
 #BSUB -q gpua100
 
 ### -- set the job Name --
-#BSUB -J 241268-deep-learning
+#BSUB -J 241268-unet
 
 ### -- ask for number of cores (default: 1) --
 #BSUB -n 4
@@ -17,48 +17,36 @@
 #BSUB -gpu "num=1:mode=exclusive_process"
 
 ### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now
-#BSUB -W 5:00
-# request 12GB of system-memory
-#BSUB -R "rusage[mem=12GB]"
+#BSUB -W 23:00
 
-### -- set the email address --
-# please uncomment the following line and put in your e-mail address,
-# if you want to receive e-mail notifications on a non-default address
-##BSUB -u s242168@dtu.dk
-
-### -- send notification at start --
-##BSUB -B
-
-### -- send notification at completion--
-#BSUB -N
+# request system-memory (per core)
+#BSUB -R "rusage[mem=4GB]"
 
 ### -- Specify how the cores are distributed across nodes --
 # The following means that all the cores must be on one single host
 #BSUB -R "span[hosts=1]"
 
 ### -- Specify the output and error file. %J is the job-id --
-### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o job_out/all_%J.out
-#BSUB -e job_out/all_%J.err
+#BSUB -o job_out/unet_all_%J.out
+#BSUB -e job_out/unet_all_%J.err
 
 # -- end of LSF options --
 
 
 
 MODEL=unet
-
 LOSS=bce
-# LOSS=dice
-# LOSS=dice_no_bce
-# LOSS=jaccard
-# LOSS=jaccard2
+
+LR=0.00002
+WD=0
+EPOCHS=15
+BS_TRAIN=16
+BS_VALID=4
+
+
 
 REPO=${HOME}/deep-learning-project
 
-# Create job_out if it is not present
-if [[ ! -d ${REPO}/job_out ]]; then
-	mkdir ${REPO}/job_out
-fi
 
 OUT=${REPO}/job_out/${MODEL}/${LSB_JOBID}
 mkdir -p ${OUT}
@@ -69,7 +57,7 @@ source ${REPO}/.venv/bin/activate
 
 
 ##### TRAINING #####
-python3 ${REPO}/src/train.py ${MODEL} ${LOSS} ${OUT}
+python3 ${REPO}/src/train_unet.py --out-path ${OUT} --epochs ${EPOCHS} --learning-rate ${LR} --weight-decay ${WD} --batch-size-train ${BS_TRAIN} --batch-size-valid ${BS_VALID}
 
 
 ##### EVALUATION #####
@@ -77,16 +65,16 @@ if [[ ! -d ${OUT}/evaluation ]]; then
     mkdir ${OUT}/evaluation
 fi
 
-python3 ${REPO}/src/evaluate.py ${MODEL} ${OUT} 5
+python3 ${REPO}/src/evaluate_unet.py ${MODEL} ${OUT} 5
 
 
 ##### SUBMISSION #####
-python3 ${REPO}/src/make_submission.py ${MODEL} ${OUT}
+python3 ${REPO}/src/make_submission_unet.py ${MODEL} ${OUT}
 
 printf "\n[*] Submitting to Kaggle\n"
-kaggle competitions submit -c airbus-ship-detection -f ${OUT}/submission.csv -m "Automatic submission ${LSB_JOBID} - With ${LOSS}"
+kaggle competitions submit -c airbus-ship-detection -f ${OUT}/submission.csv -m "Automatic submission ${LSB_JOBID} - With ${LOSS}" 2>&1
 
 
-##### FINISHING #####
-# Move job stdout/stderr to correct folder
-mv ${REPO}/job_out/all_${LSB_JOBID}* ${OUT}
+#### FINISHING ####
+# mv ${REPO}/job_out/${MODEL}/all_${LSB_JOBID}* ${OUT}
+

@@ -33,13 +33,14 @@
 
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o job_out/submission%J.out
-#BSUB -e job_out/submission%J.err
+#BSUB -o job_out/submission_%J.out
+#BSUB -e job_out/submission_%J.err
 
 # -- end of LSF options --
 
 
-MODEL=unet
+MODEL=unet_resnet34
+
 REPO=${HOME}/deep-learning-project
 OUT=$(find ${REPO}/job_out/${MODEL} -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1 | sed 's#.*/##p' | head -n 1)  # Get the latest run
 
@@ -48,8 +49,8 @@ module load python3/3.10.14
 source ${REPO}/.venv/bin/activate
 
 # Run submission
-python3 ${REPO}/src/make_submission.py ${MODEL} ${REPO}/job_out/${MODEL}/${OUT}
+python3 ${REPO}/src/make_submission_unet.py ${MODEL} ${REPO}/job_out/${MODEL}/${OUT}
 
 # Submit to Kaggle
 printf "\n[*] Submitting to Kaggle\n"
-kaggle competitions submit -c airbus-ship-detection -f ${REPO}/job_out/${MODEL}/${OUT}/submission.csv -m "Automatic submission ${OUT}"
+kaggle competitions submit -c airbus-ship-detection -f ${REPO}/job_out/${MODEL}/${OUT}/submission.csv -m "Automatic submission ${LSB_JOBID} - ${MODEL}"

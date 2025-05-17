@@ -44,8 +44,8 @@ To just evaluate the model you can use the interactive nodes.
 
 Type:
 ```sh
-# Enter an interactive node (alt: sxm2sh, a100sh)
-voltash                         
+# Enter an interactive node (alt: sxm2sh, voltash)
+a100sh                         
 
 cd ~/deep-learning-project
 clear && ./jobscripts/unet/jobscript_evaluate.sh

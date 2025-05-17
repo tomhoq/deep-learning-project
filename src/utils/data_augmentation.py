@@ -1,9 +1,12 @@
 import random
 import numpy as np
 import cv2
+import torch
+from torchvision.transforms.functional import adjust_brightness, adjust_contrast
+from PIL import Image
+import torchvision.transforms as transforms
 
 
-# Implementation from  https://github.com/ternaus/robot-surgery-segmentation
 
 def clip(img, dtype, maxval):
     return np.clip(img, 0, maxval).astype(dtype)
@@ -125,4 +128,70 @@ class CenterCrop:
                 mask = np.expand_dims(mask, axis=2)
             mask = mask[y1:y2, x1:x2,:]
 
+        return img, mask
+
+
+class Resize:
+    def __init__(self, shape):
+        self.shape = shape
+
+    def __call__(self, img, mask=None):
+        t = transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.Resize(self.shape),
+        ])
+
+        img = t(img)
+        if mask is not None:
+           mask = t(mask) 
+
+        return img, mask
+
+
+class RandomLighting:
+    def __init__(self, brightness=0.2, contrast=0.2):
+        """
+        Initializes the RandomLighting transform.
+
+        Args:
+            brightness (float): Maximum brightness adjustment factor (range [-b, b]).
+            contrast (float): Maximum contrast adjustment factor (range [-c, c]).
+        """
+        self.brightness = brightness
+        self.contrast = contrast
+
+    def __call__(self, img, mask=None):
+        """
+        Applies the random lighting transform to the given image.
+        The mask remains unaltered.
+
+        Args:
+            img (PIL Image or Tensor): Input image to transform.
+            mask (PIL Image, Tensor, or None): Input mask to return unaltered.
+
+        Returns:
+            tuple: Transformed image and unaltered mask.
+        """
+        # Generate random factors for brightness and contrast
+        b_rand = torch.empty(1).uniform_(-self.brightness, self.brightness).item()
+        c_rand = torch.empty(1).uniform_(-self.contrast, self.contrast).item()
+
+        # Ensure the image is a PIL Image
+        if isinstance(img, np.ndarray):
+            img = Image.fromarray(img)
+
+        # Adjust brightness
+        img = adjust_brightness(img, 1 + b_rand)
+
+        # Adjust contrast
+        if c_rand < 0:
+            c_rand = -1 / (c_rand - 1)
+        else:
+            c_rand += 1
+        img = adjust_contrast(img, c_rand)
+
+        # Convert back to NumPy array
+        img = np.array(img)
+
+        # Return image and mask (mask remains unaltered)
         return img, mask
